@@ -53,12 +53,14 @@ $router->post('/sessions/{id}/logout', [SessionController::class, 'logout']);
 
 // Bookings
 $router->get('/bookings', [BookingController::class, 'index']);
+$router->get('/bookings/calendar', [BookingController::class, 'calendar']);
 $router->post('/bookings', [BookingController::class, 'store']);
 $router->post('/bookings/{id}/status', [BookingController::class, 'updateStatus']);
 
 // Payments
 $router->get('/payments', [PaymentController::class, 'index']);
 $router->post('/payments', [PaymentController::class, 'store']);
+$router->get('/payments/{id}/receipt', [PaymentController::class, 'receipt']);
 
 // Expenses
 $router->get('/expenses', [ExpenseController::class, 'index']);
@@ -68,6 +70,7 @@ $router->post('/expenses/{id}/status', [ExpenseController::class, 'setStatus']);
 // Reports
 $router->get('/reports/daily', [ReportsController::class, 'daily']);
 $router->get('/reports/analytics', [ReportsController::class, 'analytics']);
+$router->get('/reports/audit', [ReportsController::class, 'audit']);
 
 // Settings & Staff
 $router->get('/settings', [SettingsController::class, 'index']);

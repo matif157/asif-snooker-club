@@ -54,6 +54,31 @@ class Payment extends BaseModel
         );
     }
 
+    public static function withDetails(int $id): ?array
+    {
+        $row = Database::fetchOne(
+            "SELECT p.*,
+                    c.name AS customer_name,
+                    c.phone AS customer_phone,
+                    t.number AS table_number,
+                    t.name AS table_name,
+                    s.start_time AS session_start,
+                    s.end_time AS session_end,
+                    s.amount AS session_amount,
+                    s.rate_type AS session_rate,
+                    u.name AS acceptor_name
+             FROM payments p
+             LEFT JOIN customers c ON c.id = p.customer_id
+             LEFT JOIN sessions s ON s.id = p.session_id
+             LEFT JOIN tables t ON t.id = s.table_id
+             LEFT JOIN users u ON u.id = p.accepted_by
+             WHERE p.id = ?",
+            [$id]
+        );
+
+        return $row ?: null;
+    }
+
     public static function outstandingCustomers(int $limit = 10): array
     {
         return Database::query(

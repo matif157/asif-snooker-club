@@ -78,6 +78,25 @@ class Booking extends BaseModel
         );
     }
 
+    /**
+     * All bookings within a month (inclusive range), exported to the calendar.
+     */
+    public static function forMonth(string $firstDay, string $lastDay): array
+    {
+        return Database::query(
+            "SELECT b.*,
+                    t.number AS table_number,
+                    c.name AS customer_linked_name
+             FROM bookings b
+             JOIN tables t ON t.id = b.table_id
+             LEFT JOIN customers c ON c.id = b.customer_id
+             WHERE b.booking_date BETWEEN ? AND ?
+               AND b.status NOT IN ('cancelled','expired','no_show')
+             ORDER BY b.booking_date ASC, b.start_time ASC",
+            [$firstDay, $lastDay]
+        );
+    }
+
     public static function isTableFree(int $tableId, string $date, string $start, string $end, ?int $ignoreId = null): bool
     {
         $sql = "SELECT COUNT(*) AS c

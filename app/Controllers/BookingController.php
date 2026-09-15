@@ -30,6 +30,48 @@ class BookingController extends Controller
         ]);
     }
 
+    public function calendar(): void
+    {
+        Booking::expirePast();
+
+        $month = Request::get('month');
+        $month = preg_match('/^\d{4}-\d{2}$/', (string) $month) ? $month : date('Y-m');
+
+        [$year, $mon] = array_map('intval', explode('-', $month));
+        $firstDay  = sprintf('%04d-%02d-01', $year, $mon);
+        $daysInMon = (int) date('t', strtotime($firstDay));
+        $lastDay   = sprintf('%04d-%02d-%02d', $year, $mon, $daysInMon);
+
+        // ISO-8601: Monday = 1 ... Sunday = 7
+        $firstDow  = (int) date('N', strtotime($firstDay));
+
+        $bookings = Booking::forMonth($firstDay, $lastDay);
+        $byDay = [];
+        foreach ($bookings as $b) {
+            $byDay[$b['booking_date']][] = $b;
+        }
+
+        // Build the 6-row grid (42 cells covers every month).
+        // Day 1 lands at column (N-1) where N=1 for Monday.
+        $cells = [];
+        $cursor = 2 - $firstDow;
+        for ($i = 0; $i < 42; $i++) {
+            $cells[] = $cursor;
+            $cursor++;
+        }
+
+        $this->view('bookings/calendar', [
+            'month'      => $month,
+            'display'    => date('F Y', strtotime($firstDay)),
+            'prevMonth'  => date('Y-m', strtotime($firstDay . ' -1 month')),
+            'nextMonth'  => date('Y-m', strtotime($firstDay . ' +1 month')),
+            'cells'      => $cells,
+            'daysInMonth'=> $daysInMon,
+            'byDay'      => $byDay,
+            'today'      => date('Y-m-d'),
+        ]);
+    }
+
     public function store(): void
     {
         Booking::expirePast();

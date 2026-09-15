@@ -11,6 +11,7 @@ use App\Core\Response;
 use App\Models\ClubSession;
 use App\Models\Payment;
 use App\Models\Customer;
+use App\Services\SettingsService;
 
 class PaymentController extends Controller
 {
@@ -90,6 +91,22 @@ class PaymentController extends Controller
             Response::success(['id' => $paymentId], 'Payment recorded');
         }
         Response::redirect('/payments');
+    }
+
+    public function receipt(int $id): void
+    {
+        $payment = Payment::withDetails($id);
+        if (!$payment) {
+            Response::error('Payment not found', 404);
+        }
+
+        $settings = SettingsService::all();
+
+        $this->view('payments/receipt', [
+            'p'        => $payment,
+            'settings' => $settings,
+            'operator' => $payment['acceptor_name'] ?? (current_user()?->name ?? ''),
+        ], 'blank');
     }
 
     public function apiPay(int $id): void

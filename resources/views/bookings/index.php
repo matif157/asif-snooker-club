@@ -11,10 +11,16 @@
             <h1 class="text-xl sm:text-2xl font-bold text-white tracking-tight">Bookings</h1>
             <p class="text-sm text-slate-400 mt-1">Manage table reservations for <span class="text-emerald-400 font-semibold"><?= date('l, M j, Y', strtotime($selectedDate)) ?></span></p>
         </div>
-        <button @click="showBookingModal = true" class="btn-primary">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-            New Booking
-        </button>
+        <div class="flex items-center gap-2">
+            <a href="<?= e(url('/bookings/calendar')) ?>" class="btn-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                Calendar
+            </a>
+            <button @click="showBookingModal = true" class="btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                New Booking
+            </button>
+        </div>
     </div>
 
     <!-- Date Selector -->

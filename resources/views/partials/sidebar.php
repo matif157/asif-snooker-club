@@ -76,6 +76,10 @@ $isActive = fn(string $path) => str_starts_with($uri, $path) || $uri === $path ?
             <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2zm3-8h2a1 1 0 110 2h-2a1 1 0 110-2z"/></svg>
             Analytics
         </a>
+        <a href="/reports/audit" class="nav-item <?php if (str_starts_with($uri, '/reports/audit')) echo 'active'; ?>">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+            Audit Log
+        </a>
         <?php endif; ?>
 
         <?php if (user_can('settings.manage')): ?>

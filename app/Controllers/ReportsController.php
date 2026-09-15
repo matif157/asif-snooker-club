@@ -6,6 +6,8 @@ namespace App\Controllers;
 
 use App\Core\Controller;
 use App\Core\Database;
+use App\Core\Request;
+use App\Services\AuditService;
 
 class ReportsController extends Controller
 {
@@ -142,6 +144,39 @@ class ReportsController extends Controller
             'utilization' => $utilization,
             'topCustomers'=> $topCustomers,
             'trend'       => $trend,
+        ]);
+    }
+
+    public function audit(): void
+    {
+        if (!user_can('reports.view') && !user_can('finance.view')) {
+            $this->error('You do not have permission to view reports.');
+        }
+
+        $page   = max(1, (int) (Request::get('page') ?: 1));
+        $perPage = 60;
+        $result = AuditService::search(
+            Request::get('action') ?: null,
+            Request::get('entity') ?: null,
+            Request::get('from') ?: null,
+            Request::get('to') ?: null,
+            ($page - 1) * $perPage,
+            $perPage
+        );
+
+        $this->view('reports/audit', [
+            'rows'     => $result['rows'],
+            'total'    => $result['total'],
+            'page'     => $page,
+            'perPage'  => $result['perPage'],
+            'filters'  => [
+                'action' => Request::get('action') ?: '',
+                'entity' => Request::get('entity') ?: '',
+                'from'   => Request::get('from') ?: '',
+                'to'     => Request::get('to') ?: '',
+            ],
+            'actions'  => AuditService::actionList(),
+            'entities' => AuditService::entityList(),
         ]);
     }
 }
