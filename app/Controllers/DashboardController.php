@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\Controller;
+use App\Core\Database;
+use App\Core\Request;
 use App\Core\Response;
 use App\Models\ClubSession;
 use App\Models\Expense;
@@ -105,6 +107,52 @@ class DashboardController extends Controller
             'sessions'  => $sessions,
             'bookings'  => $upcoming,
             'payments'  => $payments,
+        ]);
+    }
+
+    /**
+     * Per-day revenue & expenses for the last N days → chart data.
+     */
+    public function apiRevenueTrend(): void
+    {
+        $days = min(90, max(7, (int) (Request::input('days') ?? 30)));
+
+        $start = date('Y-m-d', strtotime("-{$days} days")) . ' 00:00:00';
+
+        $payments = Database::query(
+            "SELECT DATE(paid_at) AS d, COALESCE(SUM(amount), 0) AS total
+             FROM payments
+             WHERE paid_at >= ? AND status = 'paid'
+             GROUP BY DATE(paid_at)",
+            [$start]
+        );
+
+        $expenses = Database::query(
+            "SELECT DATE(created_at) AS d, COALESCE(SUM(amount), 0) AS total
+             FROM expenses
+             WHERE created_at >= ?
+             GROUP BY DATE(created_at)",
+            [$start]
+        );
+
+        $revenueByDay  = array_column($payments, 'total', 'd');
+        $expenseByDay  = array_column($expenses, 'total', 'd');
+        $labels = [];
+        $revenue = [];
+        $expense = [];
+
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $d = date('Y-m-d', strtotime("-{$i} days"));
+            $labels[] = $d;
+            $revenue[]  = (float) ($revenueByDay[$d] ?? 0);
+            $expense[]  = (float) ($expenseByDay[$d] ?? 0);
+        }
+
+        Response::success([
+            'days'     => $days,
+            'labels'   => $labels,
+            'revenue'  => $revenue,
+            'expenses' => $expense,
         ]);
     }
 }

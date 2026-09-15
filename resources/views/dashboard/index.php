@@ -364,26 +364,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // Load chart data
+    // Load chart data from real API
     async function loadChart(days) {
-        // Mock data for now — will be real API endpoint later
-        const today = new Date();
-        const labels = [];
-        const revenue = [];
-        const expenses = [];
-
-        for (let i = days - 1; i >= 0; i--) {
-            const d = new Date(today);
-            d.setDate(d.getDate() - i);
-            labels.push(d.toLocaleDateString('en', { month: 'short', day: 'numeric' }));
-            revenue.push(Math.floor(Math.random() * 5000 + 2000));
-            expenses.push(Math.floor(Math.random() * 1500 + 300));
-        }
-
-        chart.data.labels = labels;
-        chart.data.datasets[0].data = revenue;
-        chart.data.datasets[1].data = expenses;
-        chart.update();
+        try {
+            const res = await apiGet('/api/dashboard/revenue-trend?days=' + days);
+            if (!res.success) return;
+            const labels = res.data.labels.map(d => {
+                const parts = d.split('-');
+                return new Date(parts[0], parts[1] - 1, parts[2]).toLocaleDateString('en', { month: 'short', day: 'numeric' });
+            });
+            chart.data.labels = labels;
+            chart.data.datasets[0].data = res.data.revenue;
+            chart.data.datasets[1].data = res.data.expenses;
+            chart.update();
+        } catch (e) {}
     }
 
     loadChart(30);

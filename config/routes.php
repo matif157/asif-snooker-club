@@ -64,6 +64,7 @@ $router->post('/expenses', [ExpenseController::class, 'store']);
 
 // Reports
 $router->get('/reports/daily', [ReportsController::class, 'daily']);
+$router->get('/reports/analytics', [ReportsController::class, 'analytics']);
 
 // Settings & Staff
 $router->get('/settings', [SettingsController::class, 'index']);
@@ -80,6 +81,7 @@ $router->post('/api/sessions/{id}/discount', [SessionController::class, 'apiDisc
 $router->post('/api/sessions/{id}/pay', [PaymentController::class, 'apiPay']);
 $router->get('/api/customers/search', [CustomerController::class, 'apiSearch']);
 $router->get('/api/dashboard/stats', [DashboardController::class, 'apiStats']);
+$router->get('/api/dashboard/revenue-trend', [DashboardController::class, 'apiRevenueTrend']);
 $router->get('/api/activity-feed', [DashboardController::class, 'apiActivity']);
 $router->get('/api/sse/tables', [SessionController::class, 'sseTables']);
 $router->get('/api/sse/activity', [SessionController::class, 'sseActivity']);

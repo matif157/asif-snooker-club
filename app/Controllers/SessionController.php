@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\Controller;
+use App\Core\Database;
 use App\Core\Request;
 use App\Core\Response;
 use App\Models\Table as TableModel;
@@ -15,7 +16,54 @@ class SessionController extends Controller
 {
     public function index(): void
     {
-        $this->view('sessions/index', []);
+        if (!user_can('sessions.view')) {
+            $this->error('You do not have permission to view sessions.');
+        }
+
+        $from    = $_GET['from'] ?? date('Y-m-d', strtotime('-30 days'));
+        $to      = $_GET['to'] ?? date('Y-m-d');
+        $tableId = (int) ($_GET['table_id'] ?? 0);
+        $status  = $_GET['status'] ?? '';
+
+        $where = [
+            "DATE(s.start_time) BETWEEN ? AND ?",
+            "s.status = 'completed'",
+        ];
+        $params = [$from, $to];
+
+        if ($tableId > 0) {
+            $where[] = 's.table_id = ?';
+            $params[] = $tableId;
+        }
+        if ($status !== '') {
+            $where[] = 's.payment_status = ?';
+            $params[] = $status;
+        }
+
+        $sessions = Database::query(
+            "SELECT s.*,
+                    t.number AS table_number,
+                    t.name AS table_name,
+                    c.name AS customer_name,
+                    u.name AS staff_name
+             FROM sessions s
+             JOIN tables t ON t.id = s.table_id
+             LEFT JOIN customers c ON c.id = s.customer_id
+             LEFT JOIN users u ON u.id = s.staff_id
+             WHERE " . implode(' AND ', $where) . "
+             ORDER BY s.id DESC
+             LIMIT 500",
+            $params
+        );
+
+        $this->view('sessions/index', [
+            'sessions'  => $sessions,
+            'tables'    => TableModel::all(),
+            'from'      => $from,
+            'to'        => $to,
+            'tableId'   => $tableId,
+            'status'    => $status,
+        ]);
     }
 
     public function active(): void

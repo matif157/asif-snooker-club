@@ -68,9 +68,13 @@ $isActive = fn(string $path) => str_starts_with($uri, $path) || $uri === $path ?
         </a>
 
         <?php if (user_can('reports.view') || user_can('finance.view')): ?>
-        <a href="/reports/daily" class="nav-item <?php if (str_starts_with($uri, '/reports')) echo 'active'; ?>">
+        <a href="/reports/daily" class="nav-item <?php if (str_starts_with($uri, '/reports/daily')) echo 'active'; ?>">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
             Daily Closing
+        </a>
+        <a href="/reports/analytics" class="nav-item <?php if (str_starts_with($uri, '/reports/analytics')) echo 'active'; ?>">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2zm3-8h2a1 1 0 110 2h-2a1 1 0 110-2z"/></svg>
+            Analytics
         </a>
         <?php endif; ?>
 

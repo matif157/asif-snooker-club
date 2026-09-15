@@ -1,20 +1,8 @@
 <?php
-/** @var array $sessions, $stats */
-use App\Models\ClubSession;
-use App\Models\Payment;
-
-$sessions = \App\Core\Database::query(
-    "SELECT s.*,
-            t.number AS table_number,
-            t.name AS table_name,
-            c.name AS customer_name,
-            u.name AS staff_name
-     FROM sessions s
-     JOIN tables t ON t.id = s.table_id
-     LEFT JOIN customers c ON c.id = s.customer_id
-     LEFT JOIN users u ON u.id = s.staff_id
-     ORDER BY s.id DESC LIMIT 100"
-);
+/** @var array $sessions, $tables */
+/** @var string $from, $to */
+/** @var int $tableId */
+/** @var string $status */
 
 $totalRevenue = array_sum(array_map(fn($s) => (float) $s['amount'], $sessions));
 $paidCount   = count(array_filter($sessions, fn($s) => $s['payment_status'] === 'paid'));
@@ -27,10 +15,46 @@ $unpaidTotal = array_sum(array_map(fn($s) => $s['payment_status'] === 'unpaid' ?
             <h1 class="text-xl sm:text-2xl font-bold text-white tracking-tight">Sessions</h1>
             <p class="text-sm text-slate-400 mt-1">All table sessions &amp; billing history</p>
         </div>
-        <a href="/tables?start_session=1" class="btn-primary">
+        <a href="<?= e(url('/tables?start_session=1')) ?>" class="btn-primary">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
             New Session
         </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="card p-4 sm:p-5">
+        <form method="GET" action="<?= e(url('/sessions')) ?>" class="flex flex-col sm:flex-row flex-wrap items-end gap-3">
+            <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1.5">From</label>
+                <input type="date" name="from" value="<?= e($from) ?>" class="input !w-auto">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1.5">To</label>
+                <input type="date" name="to" value="<?= e($to) ?>" class="input !w-auto">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1.5">Table</label>
+                <select name="table_id" class="input !w-auto">
+                    <option value="0">All tables</option>
+                    <?php foreach ($tables as $t): ?>
+                        <option value="<?= (int) $t['id'] ?>" <?= $tableId === (int) $t['id'] ? 'selected' : '' ?>>
+                            #<?= e($t['number']) ?> — <?= e($t['name']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1.5">Payment</label>
+                <select name="status" class="input !w-auto">
+                    <option value="">All</option>
+                    <option value="paid" <?= $status === 'paid' ? 'selected' : '' ?>>Paid</option>
+                    <option value="partial" <?= $status === 'partial' ? 'selected' : '' ?>>Partial</option>
+                    <option value="unpaid" <?= $status === 'unpaid' ? 'selected' : '' ?>>Unpaid</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-secondary">Filter</button>
+            <a href="<?= e(url('/sessions')) ?>" class="text-xs text-slate-500 hover:text-emerald-400 self-center">Reset</a>
+        </form>
     </div>
 
     <!-- Stats -->

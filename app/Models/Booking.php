@@ -85,18 +85,18 @@ class Booking extends BaseModel
                 WHERE table_id = ?
                   AND booking_date = ?
                   AND status IN ('requested','confirmed','arrived','active')
-                  AND start_time < :end AND end_time > :start";
+                  AND start_time < ? AND end_time > ?";
 
         $params = [
             $tableId,
             $date,
-            ':end' => $end,
-            ':start' => $start,
+            $end,
+            $start,
         ];
 
         if ($ignoreId !== null) {
-            $sql .= ' AND id != :ignore';
-            $params[':ignore'] = $ignoreId;
+            $sql .= ' AND id != ?';
+            $params[] = $ignoreId;
         }
 
         $row = Database::fetchOne($sql, $params);

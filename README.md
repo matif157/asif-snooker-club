@@ -11,7 +11,11 @@ D Ground, Faisalabad. Digitizes the handwritten daily register into a real-time 
 - **Bookings** — table availability checks, status workflow (Requested → Confirmed → Arrived → Active → Completed)
 - **Payments** — Cash, **JazzCash**, Bank Transfer, Card; outstanding balance tracking
 - **Expenses & Finance** — categorized expenses (Electricity, Labour, Rent, etc.) with approval tracking
-- **Real-time updates** — lightweight AJAX polling (shared-hosting friendly) + optional SSE endpoints
+- **Daily Closing** — collected by method, sessions billed, expenses, outstanding, with print & WhatsApp share
+- **Analytics** — revenue by hour (peak staffing), table utilization, top customers, daily trend (7–90 day ranges)
+- **Sessions history** — filterable by date range, table, payment status
+- **Notifications bell** — live alerts for full tables, today's bookings, unpaid sessions
+- **Real-time updates** — live dashboard chart (real data), lightweight AJAX polling (shared-hosting friendly) + optional SSE endpoints
 - **RBAC** — Owner, Admin, ECO, Counter, Staff, Auditor roles with granular permissions
 - **Premium dark UI** — emerald/gold accents, responsive mobile sidebar, light/dark theme toggle
 
