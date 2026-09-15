@@ -146,6 +146,26 @@ class ClubSession extends BaseModel
         );
     }
 
+    public static function withDetails(int $id): ?array
+    {
+        return Database::fetchOne(
+            "SELECT s.*,
+                    t.number AS table_number,
+                    t.name AS table_name,
+                    c.name AS customer_name,
+                    c.phone AS customer_phone,
+                    u.name AS staff_name,
+                    (SELECT COALESCE(SUM(p.amount), 0) FROM payments p
+                     WHERE p.session_id = s.id AND p.status = 'paid') AS paid_total
+             FROM sessions s
+             JOIN tables t ON t.id = s.table_id
+             LEFT JOIN customers c ON c.id = s.customer_id
+             LEFT JOIN users u ON u.id = s.staff_id
+             WHERE s.id = ?",
+            [$id]
+        );
+    }
+
     public static function todayStats(): array
     {
         return Database::fetchOne(

@@ -80,7 +80,25 @@ class SessionController extends Controller
 
     public function show(int $id): void
     {
-        $this->view('sessions/active', []);
+        $session = \App\Models\ClubSession::find($id);
+        if (!$session) {
+            Response::error('Session not found', 404);
+        }
+        $this->redirect('/sessions');
+    }
+
+    public function invoice(int $id): void
+    {
+        $session = ClubSession::withDetails($id);
+        if (!$session) {
+            Response::error('Session not found', 404);
+        }
+
+        $this->view('sessions/invoice', [
+            's'        => $session,
+            'settings' => \App\Services\SettingsService::all(),
+            'operator' => $session['staff_name'] ?? (current_user()?->name ?? ''),
+        ], 'blank');
     }
 
     public function end(int $id): void
@@ -113,13 +131,10 @@ class SessionController extends Controller
         $rateType    = Request::input('rate_type') ?? 'hourly';
         $notes       = Request::input('notes') ?? '';
 
-        // Determine rate
-        $rate = (float) $table->hourly_rate;
-        if ($rateType === 'vip' && $table->vip_rate) {
-            $rate = (float) $table->vip_rate;
-        } elseif ($rateType === 'night' && $table->night_rate) {
-            $rate = (float) $table->night_rate;
-        }
+        // Auto-resolve rate band (peak/off-peak/night) unless manually overridden
+        $resolved = \App\Services\RateService::resolveRate($rateType, $table->toArray());
+        $rateType = $resolved['rate_type'];
+        $rate     = $resolved['rate'];
 
         $sessionId = ClubSession::create([
             'table_id'       => (int) $table->id,

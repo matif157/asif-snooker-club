@@ -8,6 +8,7 @@ use App\Controllers\CustomerController;
 use App\Controllers\DashboardController;
 use App\Controllers\ExpenseController;
 use App\Controllers\PaymentController;
+use App\Controllers\PortalController;
 use App\Controllers\ReportsController;
 use App\Controllers\SessionController;
 use App\Controllers\SettingsController;
@@ -49,6 +50,7 @@ $router->get('/sessions', [SessionController::class, 'index']);
 $router->get('/sessions/active', [SessionController::class, 'active']);
 $router->post('/sessions', [SessionController::class, 'store']);
 $router->get('/sessions/{id}', [SessionController::class, 'show']);
+$router->get('/sessions/{id}/invoice', [SessionController::class, 'invoice']);
 $router->post('/sessions/{id}/end', [SessionController::class, 'end']);
 $router->post('/sessions/{id}/logout', [SessionController::class, 'logout']);
 
@@ -72,7 +74,11 @@ $router->post('/expenses/{id}/status', [ExpenseController::class, 'setStatus']);
 $router->get('/reports/daily', [ReportsController::class, 'daily']);
 $router->get('/reports/pnl', [ReportsController::class, 'pnl']);
 $router->get('/reports/analytics', [ReportsController::class, 'analytics']);
+$router->get('/reports/followup', [ReportsController::class, 'followup']);
 $router->get('/reports/audit', [ReportsController::class, 'audit']);
+
+// Public customer portal
+$router->get('/portal', [PortalController::class, 'index']);
 
 // Settings & Staff
 $router->get('/settings', [SettingsController::class, 'index']);

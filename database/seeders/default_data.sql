@@ -63,6 +63,12 @@ INSERT INTO settings (`key`, value, `group`) VALUES
 ('default_min_charge',   '100',                 'pricing'),
 ('business_hours_open',  '12:00',               'general'),
 ('business_hours_close', '02:00',               'general'),
+('peak_enabled',         '1',                   'pricing'),
+('peak_start',           '19:00',               'pricing'),
+('peak_end',             '00:00',               'pricing'),
+('peak_rate_multiplier', '1.0',                 'pricing'),
+('night_start',          '00:00',               'pricing'),
+('night_end',            '06:00',               'pricing'),
 ('whatsapp_template',    'Assalam o Alaikum {name}! Thank you for visiting Asif Snooker Club.', 'notifications'),
 ('close_table_bookings', '0',                   'bookings');
 

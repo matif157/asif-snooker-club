@@ -8,6 +8,7 @@ use App\Core\Controller;
 use App\Core\Database;
 use App\Core\Request;
 use App\Services\AuditService;
+use App\Services\SettingsService;
 
 class ReportsController extends Controller
 {
@@ -250,6 +251,77 @@ class ReportsController extends Controller
             'outstanding' => $outstanding,
             'net'         => $revenue - $expenses,
             'days'        => $days,
+        ]);
+    }
+
+    public function followup(): void
+    {
+        if (!user_can('reports.view') && !user_can('finance.view')) {
+            $this->error('You do not have permission to view reports.');
+        }
+
+        $outstanding = \App\Models\Payment::outstandingCustomers(30);
+
+        $noShows = Database::query(
+            "SELECT b.*, t.number AS table_number,
+                    c.name AS customer_linked_name,
+                    c.phone AS linked_phone
+             FROM bookings b
+             JOIN tables t ON t.id = b.table_id
+             LEFT JOIN customers c ON c.id = b.customer_id
+             WHERE b.status IN ('no_show','cancelled','expired')
+               AND (b.booking_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY))
+             ORDER BY b.booking_date DESC
+             LIMIT 40"
+        );
+
+        $messageReminder = SettingsService::get(
+            'reminder_template',
+            'Assalam o Alaikum {name}! This is a friendly reminder from Asif Snooker Club that your balance of Rs {amount} is due. Please settle at your earliest convenience. Thank you!'
+        );
+        $messageNoShow = SettingsService::get(
+            'no_show_template',
+            'Assalam o Alaikum {name}! You missed your scheduled booking at Asif Snooker Club. Let us know if you would like to rebook. Thank you!'
+        );
+
+        $outstandingPrepared = [];
+        foreach ($outstanding as $c) {
+            $text = str_replace(
+                ['{name}', '{amount}'],
+                [$c['name'], number_format((float) $c['outstanding_balance'])],
+                $messageReminder
+            );
+            $outstandingPrepared[] = [
+                'name'    => $c['name'],
+                'phone'   => $c['phone'],
+                'balance' => (float) $c['outstanding_balance'],
+                'lastVisit' => $c['last_visit_at'] ?? null,
+                'message' => $text,
+                'waLink'  => \App\Models\Customer::whatsappLink($c['phone'], $text),
+            ];
+        }
+
+        $noShowPrepared = [];
+        foreach ($noShows as $n) {
+            $name = $n['customer_linked_name'] ?? $n['customer_name'] ?? 'Walk-in';
+            $phone = $n['linked_phone'] ?? $n['customer_phone'] ?? '';
+            $text = str_replace(['{name}', '{date}'], [$name, $n['booking_date']], $messageNoShow);
+            $noShowPrepared[] = [
+                'name'    => $name,
+                'phone'   => $phone,
+                'date'    => $n['booking_date'],
+                'table'   => $n['table_number'],
+                'status'  => $n['status'],
+                'message' => $text,
+                'waLink'  => $phone ? \App\Models\Customer::whatsappLink($phone, $text) : null,
+            ];
+        }
+
+        $this->view('reports/followup', [
+            'outstanding' => $outstandingPrepared,
+            'noShows'     => $noShowPrepared,
+            'reminderTemplate' => $messageReminder,
+            'noShowTemplate'   => $messageNoShow,
         ]);
     }
 

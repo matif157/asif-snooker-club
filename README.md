@@ -14,6 +14,16 @@ D Ground, Faisalabad. Digitizes the handwritten daily register into a real-time 
 - **Daily Closing** — collected by method, sessions billed, expenses, outstanding, with print & WhatsApp share
 - **Analytics** — revenue by hour (peak staffing), table utilization, top customers, daily trend (7–90 day ranges)
 - **Sessions history** — filterable by date range, table, payment status
+- **Peak & Night rate automation** — configurable peak/off-peak/night time bands; sessions started in a peak band auto-bill at the peak multiplier, night band when your table has a `night_rate`
+- **Session e-invoices** — printable session invoices (invoice no., billed-to, line items, paid/balance-due)
+- **Payment receipts** — print-ready receipts with amount in words
+- **Booking calendar** — monthly grid with per-table chips and prev/next navigation
+- **Follow-up & Recovery center** — outstanding customers + missed bookings with one-tap WhatsApp reminders
+- **Audit log** — full action history (expense approvals, payments, sessions, etc.) with filters
+- **WhatsApp Broadcast center** — audience-targeted (active / outstanding / recent / VIP) message previews with personalized links & copy-all
+- **P&L report** — monthly revenue vs expenses, net profit, daily chart, method/category breakdowns + WhatsApp share
+- **Customer self-service portal** (`/portal`) — public phone-number lookup showing balance, recent sessions and payments
+- **Automated backups** — CLI `database/backup.php` + in-app backup manager (download/restore-ready SQL dumps, keeps last 20)
 - **Notifications bell** — live alerts for full tables, today's bookings, unpaid sessions
 - **Real-time updates** — live dashboard chart (real data), lightweight AJAX polling (shared-hosting friendly) + optional SSE endpoints
 - **RBAC** — Owner, Admin, ECO, Counter, Staff, Auditor roles with granular permissions
@@ -60,16 +70,43 @@ Create the owner account during install (`php database/install.php`). Default se
 
 ```
 app/
-  Controllers/    HTTP request handlers
+  Controllers/    HTTP request handlers (incl. PortalController for the public self-service portal)
   Core/           Router, Database (PDO), Auth, Request, Response, View, Session
   Models/         Database models (User, Table, Customer, ClubSession, Booking, Payment, Expense)
+  Services/       Business logic (RateService for peak/night bands, AuditService, BackupService, SettingsService)
   Middleware/     CSRF & auth helpers
 config/           app.php, database.php, routes.php
-database/         migrations/, seeders/, install.php
+database/         migrations/, seeders/, install.php, backup.php
 public/           web root — index.php, assets
 resources/views/  layouts, partials, pages
 storage/          logs, backups
 ```
+
+## Backup & Maintenance
+
+```bash
+# Scheduled daily backup (cron-friendly)
+php database/backup.php        # writes storage/backups/backup-YYYYMMDD-HHiiss.sql
+
+# In-app
+# Settings → "Create Backup Now" downloads the latest dump.
+# Backups are excluded from git.
+```
+
+## Peak / Night Pricing
+
+Configured under **Settings → Pricing & Peak Hours**:
+
+- `peak_enabled` — toggle the surge band. `peak_start`/`peak_end` support overnight windows (e.g. `19:00` → `00:00`).
+- `peak_rate_multiplier` — surge factor applied on top of the table's hourly rate during the band.
+- `night_start`/`night_end` — lower night band, applies only to tables that have a `night_rate` set.
+- Sessions started with `rate_type = hourly` inside a band auto-bill at the band rate; manual rates (frame/VIP/custom) are always respected.
+- The live rate band and resulting rate can be previewed right inside the settings page.
+
+## Customer Portal
+
+Point members to `/portal` (no login needed): they enter the phone number they registered
+with and instantly see their outstanding balance, last sessions and payment history.
 
 ## WhatsApp / Click-to-Call
 

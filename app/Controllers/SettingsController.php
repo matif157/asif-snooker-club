@@ -78,6 +78,8 @@ class SettingsController extends Controller
             'club_name', 'club_phone', 'club_address', 'currency',
             'business_hours_open', 'business_hours_close',
             'default_hourly_rate', 'default_min_charge', 'whatsapp_template',
+            'peak_enabled', 'peak_start', 'peak_end', 'peak_rate_multiplier',
+            'night_start', 'night_end',
         ];
 
         foreach ($allowed as $key) {

@@ -88,6 +88,48 @@
         </div>
     </div>
 
+    <!-- Pricing & peak hours -->
+    <div class="card p-5 sm:p-6" id="pricing">
+        <h2 class="text-lg font-semibold text-white mb-4">Pricing &amp; Peak Hours</h2>
+        <p class="text-sm text-slate-400 mb-5">New hourly sessions are auto-labelled and priced by the active band. Peak/night bands can cross midnight.</p>
+        <form method="POST" action="<?= e(url('/settings')) ?>">
+            <?= csrf_field() ?>
+            <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div class="flex items-end">
+                    <label class="flex items-center gap-2 text-sm cursor-pointer">
+                        <input type="checkbox" name="peak_enabled" value="1" <?= (int) ($settings['peak_enabled'] ?? 1) === 1 ? 'checked' : '' ?> class="w-4 h-4 rounded accent-emerald-500">
+                        <span class="text-slate-300 font-medium">Peak pricing</span>
+                    </label>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1.5">Peak Start</label>
+                    <input name="peak_start" type="time" class="input" value="<?= e($settings['peak_start'] ?? '19:00') ?>">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1.5">Peak End</label>
+                    <input name="peak_end" type="time" class="input" value="<?= e($settings['peak_end'] ?? '00:00') ?>">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1.5">Peak Multiplier ×</label>
+                    <input name="peak_rate_multiplier" type="number" step="0.05" min="1" class="input" value="<?= e($settings['peak_rate_multiplier'] ?? '1') ?>">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1.5">Night Start</label>
+                    <input name="night_start" type="time" class="input" value="<?= e($settings['night_start'] ?? '00:00') ?>">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1.5">Night End</label>
+                    <input name="night_end" type="time" class="input" value="<?= e($settings['night_end'] ?? '06:00') ?>">
+                </div>
+            </div>
+            <div class="mt-3 text-xs text-slate-500">Night rate uses each table's set <code>night_rate</code> (Rs) when ≥ peak hours end; otherwise the standard hourly rate applies.</div>
+            <div class="mt-5 flex items-center justify-between">
+                <button type="submit" class="btn-primary">Save Pricing</button>
+                <button type="button" onclick="alert('Current band: <?= e(\App\Services\RateService::detectBand(null, ['night_rate' => 0])) ?>')" class="btn-secondary text-xs">Check current band</button>
+            </div>
+        </form>
+    </div>
+
     <!-- Database backups -->
     <div class="card p-5 sm:p-6" id="backups">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
