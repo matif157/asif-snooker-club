@@ -61,6 +61,24 @@ Then open `http://localhost:8000` and sign in with the owner account you created
 > For Apache: point `DocumentRoot` to the `public/` folder.
 > For Nginx: configure root to `public/` with `index index.php` and `try_files $uri $uri/ /index.php?$query_string;`.
 
+### Laravel Herd (macOS)
+
+If you use [Laravel Herd](https://herd.laravel.com), the project is already linked as
+a parked site at **http://asif-snooker-club.test**:
+
+```bash
+# Link (or re-link) the project manually
+cd "/path/to/asif-snooker-club"
+herd link              # site becomes asif-snooker-club.test
+herd stop && herd start
+```
+
+- Herd serves the `public/` folder automatically (Laravel-style driver detection).
+- `herd link` sets `APP_URL` in `.env` for you.
+- PHP 8.4 is the recommended runtime (Herd's default `herd.sock` → `herd84.sock`).
+- The bundled CLI resolver needs a `php` entry in Herd's bin — symlinked once with
+  `ln -sf php84 php` inside `~/Library/Application Support/Herd/bin`.
+
 ## Default Login
 
 Create the owner account during install (`php database/install.php`). Default seeded tables:
