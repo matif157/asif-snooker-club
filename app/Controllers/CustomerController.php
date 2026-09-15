@@ -172,7 +172,7 @@ class CustomerController extends Controller
     public function export(): void
     {
         if (!user_can('customers.manage')) {
-            $this->error('You do not have permission to export customers.');
+            $this->error('You do not have permission to export customers.', 403);
         }
 
         $audience = Request::get('audience', 'active');
@@ -217,7 +217,7 @@ class CustomerController extends Controller
     public function import(): void
     {
         if (!user_can('customers.manage')) {
-            $this->error('You do not have permission to import customers.');
+            $this->error('You do not have permission to import customers.', 403);
         }
 
         if (!isset($_FILES['csv_file']) || ($_FILES['csv_file']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {

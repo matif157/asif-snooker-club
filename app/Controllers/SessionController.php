@@ -17,7 +17,7 @@ class SessionController extends Controller
     public function index(): void
     {
         if (!user_can('sessions.view')) {
-            $this->error('You do not have permission to view sessions.');
+            $this->error('You do not have permission to view sessions.', 403);
         }
 
         $from    = $_GET['from'] ?? date('Y-m-d', strtotime('-30 days'));

@@ -18,7 +18,7 @@ class SettingsController extends Controller
     public function index(): void
     {
         if (!user_can('settings.manage')) {
-            $this->error('You do not have permission to manage settings.');
+            $this->error('You do not have permission to manage settings.', 403);
         }
 
         $settings = SettingsService::all();
@@ -67,7 +67,7 @@ class SettingsController extends Controller
     public function update(): void
     {
         if (!user_can('settings.manage')) {
-            $this->error('You do not have permission to manage settings.');
+            $this->error('You do not have permission to manage settings.', 403);
         }
 
         if (!Request::csrf()) {
@@ -97,7 +97,7 @@ class SettingsController extends Controller
     public function updateUser(int $id): void
     {
         if (!user_can('staff.manage')) {
-            $this->error('You do not have permission to manage staff.');
+            $this->error('You do not have permission to manage staff.', 403);
         }
 
         $user = User::find($id);
@@ -121,7 +121,7 @@ class SettingsController extends Controller
     public function createUser(): void
     {
         if (!user_can('staff.manage')) {
-            $this->error('You do not have permission to manage staff.');
+            $this->error('You do not have permission to manage staff.', 403);
         }
 
         $data = Request::all();

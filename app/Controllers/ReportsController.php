@@ -15,7 +15,7 @@ class ReportsController extends Controller
     public function daily(): void
     {
         if (!user_can('reports.view') && !user_can('finance.view')) {
-            $this->error('You do not have permission to view reports.');
+            $this->error('You do not have permission to view reports.', 403);
         }
 
         $date = $_GET['date'] ?? date('Y-m-d');
@@ -77,7 +77,7 @@ class ReportsController extends Controller
     public function analytics(): void
     {
         if (!user_can('reports.view') && !user_can('finance.view')) {
-            $this->error('You do not have permission to view reports.');
+            $this->error('You do not have permission to view reports.', 403);
         }
 
         $days = min(90, max(7, (int) ($_GET['days'] ?? 30)));
@@ -151,7 +151,7 @@ class ReportsController extends Controller
     public function pnl(): void
     {
         if (!user_can('reports.view') && !user_can('finance.view')) {
-            $this->error('You do not have permission to view reports.');
+            $this->error('You do not have permission to view reports.', 403);
         }
 
         $month = Request::get('month');
@@ -257,7 +257,7 @@ class ReportsController extends Controller
     public function followup(): void
     {
         if (!user_can('reports.view') && !user_can('finance.view')) {
-            $this->error('You do not have permission to view reports.');
+            $this->error('You do not have permission to view reports.', 403);
         }
 
         $outstanding = \App\Models\Payment::outstandingCustomers(30);
@@ -328,7 +328,7 @@ class ReportsController extends Controller
     public function audit(): void
     {
         if (!user_can('reports.view') && !user_can('finance.view')) {
-            $this->error('You do not have permission to view reports.');
+            $this->error('You do not have permission to view reports.', 403);
         }
 
         $page   = max(1, (int) (Request::get('page') ?: 1));
