@@ -29,6 +29,12 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 Refresh
             </button>
+            <?php if (user_can('tables.manage')): ?>
+                <a href="<?= e(url('/tables/create')) ?>" class="btn-primary text-xs !py-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    Add Table
+                </a>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -76,7 +82,25 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
 
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-sm font-bold text-white">#<?= e($table['number']) ?></span>
-                    <span class="status-dot flex-shrink-0"></span>
+                    <div class="flex items-center gap-1.5">
+                        <span class="status-dot flex-shrink-0"></span>
+                        <?php if (user_can('tables.manage')): ?>
+                            <a href="<?= e(url('/tables/' . (int) $table['id'] . '/edit')) ?>" title="Edit table"
+                               onclick="event.stopPropagation()" class="p-1 rounded-md text-slate-400 hover:text-white hover:bg-white/10 opacity-0 group-hover:opacity-100 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-5M18.4 2.6a2.1 2.1 0 013 3L12 15l-4 1 1-4 9.4-9.4z"/></svg>
+                            </a>
+                            <?php if (in_array($status, ['available', 'maintenance'])): ?>
+                                <form method="POST" action="<?= e(url('/tables/' . (int) $table['id'] . '/toggle')) ?>"
+                                      class="opacity-0 group-hover:opacity-100 transition" onclick="event.stopPropagation()">
+                                    <?= csrf_field() ?>
+                                    <button type="submit" title="<?= $status === 'maintenance' ? 'Mark available' : 'Send to maintenance' ?>"
+                                            class="p-1 rounded-md text-slate-400 hover:text-white hover:bg-white/10">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.34 17.66L7.66 20.34a4.5 4.5 0 01-6.36-6.36l2.68-2.68m13.36 0l-2.68 2.68m1.34 5.66l1.5 1.5A2.5 2.5 0 1014 17.66l-1.5-1.5m3.5-13.5l4 4a2.5 2.5 0 11-3.54 3.54l-4-4a2.5 2.5 0 013.54-3.54z"/></svg>
+                                    </button>
+                                </form>
+                            <?php endif; ?>
+                        <?php endif; ?>
+                    </div>
                 </div>
                 <p class="text-xs text-slate-400 mb-2 truncate"><?= e($table['name']) ?></p>
 

@@ -42,11 +42,19 @@ class TableController extends Controller
 
     public function create(): void
     {
+        if (!user_can('tables.manage')) {
+            $this->error('You do not have permission to manage tables.', 403);
+        }
+
         $this->view('tables/create', []);
     }
 
     public function store(): void
     {
+        if (!user_can('tables.manage')) {
+            $this->error('You do not have permission to manage tables.', 403);
+        }
+
         $data = Request::all();
         $errors = $this->validate($data, [
             'number'        => 'required|max:10',
@@ -76,6 +84,10 @@ class TableController extends Controller
 
     public function edit(int $id): void
     {
+        if (!user_can('tables.manage')) {
+            $this->error('You do not have permission to manage tables.', 403);
+        }
+
         $table = TableModel::find($id);
         if (!$table) {
             Response::redirect('/tables');
@@ -86,6 +98,10 @@ class TableController extends Controller
 
     public function update(int $id): void
     {
+        if (!user_can('tables.manage')) {
+            $this->error('You do not have permission to manage tables.', 403);
+        }
+
         $table = TableModel::find($id);
         if (!$table) {
             Response::redirect('/tables');
@@ -106,6 +122,10 @@ class TableController extends Controller
 
     public function destroy(int $id): void
     {
+        if (!user_can('tables.manage')) {
+            $this->error('You do not have permission to manage tables.', 403);
+        }
+
         $table = TableModel::find($id);
         if ($table) {
             $table->delete();
@@ -116,6 +136,10 @@ class TableController extends Controller
 
     public function toggleStatus(int $id): void
     {
+        if (!user_can('tables.manage')) {
+            $this->error('You do not have permission to manage tables.', 403);
+        }
+
         $table = TableModel::find($id);
         if (!$table) {
             Response::error('Table not found', 404);
