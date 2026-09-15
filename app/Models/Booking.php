@@ -126,4 +126,54 @@ class Booking extends BaseModel
 
         return $affected;
     }
+
+    /**
+     * Mark unconfirmed bookings whose slot has fully passed as no-show.
+     */
+    public static function markNoShows(): int
+    {
+        $affected = 0;
+        $rows = Database::query(
+            "SELECT id FROM bookings
+             WHERE status IN ('arrived')
+               AND end_time < CURTIME()
+               AND booking_date <= CURDATE()"
+        );
+
+        foreach ($rows as $row) {
+            Database::execute(
+                "UPDATE bookings SET status = 'completed' WHERE id = ?",
+                [$row['id']]
+            );
+            $affected++;
+        }
+
+        return $affected;
+    }
+
+    /**
+     * When a session starts on a table, mark any of today's confirmed/arrived
+     * bookings for that table as 'active' and return the booking id if found.
+     */
+    public static function activateForTable(int $tableId): ?int
+    {
+        $row = Database::fetchOne(
+            "SELECT id FROM bookings
+             WHERE table_id = ?
+               AND booking_date = CURDATE()
+               AND status IN ('requested','confirmed','arrived')
+             ORDER BY start_time ASC LIMIT 1",
+            [$tableId]
+        );
+
+        if ($row) {
+            Database::execute(
+                "UPDATE bookings SET status = 'active' WHERE id = ?",
+                [$row['id']]
+            );
+            return (int) $row['id'];
+        }
+
+        return null;
+    }
 }

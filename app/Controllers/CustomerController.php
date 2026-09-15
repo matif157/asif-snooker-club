@@ -119,8 +119,111 @@ class CustomerController extends Controller
 
     public function apiSearch(): void
     {
-        $term = Request::get('q', '');
-        $customers = Customer::search($term);
-        Response::success($customers);
+        $q = trim((string) (Request::get('q') ?? ''));
+        if ($q === '') {
+            Response::success([]);
+        }
+
+        $rows = Database::query(
+            "SELECT id, name, phone, whatsapp, category, status
+             FROM customers
+             WHERE status = 'active'
+               AND (name LIKE ? OR phone LIKE ? OR whatsapp LIKE ?)
+             ORDER BY name ASC LIMIT 15",
+            ["%{$q}%", "%{$q}%", "%{$q}%"]
+        );
+
+        Response::success($rows);
+    }
+
+    /**
+     * Export active customers as CSV download.
+     */
+    public function export(): void
+    {
+        if (!user_can('customers.manage')) {
+            $this->error('You do not have permission to export customers.');
+        }
+
+        $rows = Database::query(
+            "SELECT name, phone, whatsapp, email, category, total_visits,
+                    total_hours, total_spent, outstanding_balance, last_visit_at, notes
+             FROM customers
+             ORDER BY name ASC"
+        );
+
+        header('Content-Type: text/csv; charset=UTF-8');
+        header('Content-Disposition: attachment; filename="customers-' . date('Y-m-d') . '.csv"');
+        $out = fopen('php://output', 'w');
+        fputcsv($out, ['Name', 'Phone', 'WhatsApp', 'Email', 'Category', 'Visits', 'Hours', 'Total Spent', 'Outstanding', 'Last Visit', 'Notes'], ',', '"', '\\');
+        foreach ($rows as $r) {
+            fputcsv($out, array_values($r), ',', '"', '\\');
+        }
+        fclose($out);
+        exit;
+    }
+
+    /**
+     * Import customers from an uploaded CSV (Name, Phone, WhatsApp, Email, Category, Notes).
+     */
+    public function import(): void
+    {
+        if (!user_can('customers.manage')) {
+            $this->error('You do not have permission to import customers.');
+        }
+
+        if (!isset($_FILES['csv_file']) || ($_FILES['csv_file']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+            flash('error', 'Please select a CSV file to import.');
+            Response::redirect('/customers');
+        }
+
+        $handle = fopen($_FILES['csv_file']['tmp_name'], 'r');
+        if ($handle === false) {
+            flash('error', 'Could not read the uploaded file.');
+            Response::redirect('/customers');
+        }
+
+        $header = fgetcsv($handle);
+        $created = 0;
+        $skipped = 0;
+        $rowNum = 1;
+
+        while (($row = fgetcsv($handle)) !== false) {
+            $rowNum++;
+            $data = array_combine(array_map('strtolower', $header ?? []), $row);
+            $name = trim((string) ($data['name'] ?? ''));
+            $phone = trim((string) ($data['phone'] ?? ''));
+            if ($name === '' && $phone === '') {
+                continue;
+            }
+
+            $phoneNormalized = $phone !== '' ? Customer::normalizePhone($phone) : '';
+            if ($phoneNormalized !== '' && Customer::findBy('phone', $phoneNormalized)) {
+                $skipped++;
+                continue;
+            }
+
+            $category = strtolower(trim((string) ($data['category'] ?? 'regular')));
+            if (!in_array($category, ['regular', 'vip', 'member', 'tournament', 'inactive'])) {
+                $category = 'regular';
+            }
+
+            Customer::create([
+                'name'     => $name !== '' ? $name : ($phoneNormalized !== '' ? $phoneNormalized : 'Imported Row ' . $rowNum),
+                'phone'    => $phoneNormalized !== '' ? $phoneNormalized : null,
+                'whatsapp' => $phoneNormalized !== '' ? $phoneNormalized : null,
+                'email'    => trim((string) ($data['email'] ?? '')) ?: null,
+                'category' => $category,
+                'notes'    => trim((string) ($data['notes'] ?? '')) ?: null,
+            ]);
+            $created++;
+        }
+
+        fclose($handle);
+
+        \App\Services\AuditService::log('customers_imported', 'customer', null, null, ['created' => $created, 'skipped' => $skipped]);
+
+        flash('success', "Imported {$created} customer(s)" . ($skipped > 0 ? ", skipped {$skipped} duplicate(s)." : '.'));
+        Response::redirect('/customers');
     }
 }

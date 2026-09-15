@@ -35,6 +35,8 @@ $router->post('/tables/{id}/toggle', [TableController::class, 'toggleStatus']);
 
 // Customers
 $router->get('/customers', [CustomerController::class, 'index']);
+$router->get('/customers/export', [CustomerController::class, 'export']);
+$router->post('/customers/import', [CustomerController::class, 'import']);
 $router->get('/customers/create', [CustomerController::class, 'create']);
 $router->post('/customers', [CustomerController::class, 'store']);
 $router->get('/customers/{id}', [CustomerController::class, 'show']);

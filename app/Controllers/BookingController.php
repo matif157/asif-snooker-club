@@ -14,6 +14,9 @@ class BookingController extends Controller
 {
     public function index(): void
     {
+        Booking::expirePast();
+        Booking::markNoShows();
+
         $date = Request::get('date', date('Y-m-d'));
         $bookings = Booking::forDate($date);
         $tables   = TableModel::activeTables();
@@ -29,6 +32,8 @@ class BookingController extends Controller
 
     public function store(): void
     {
+        Booking::expirePast();
+
         $data = Request::all();
         $errors = $this->validate($data, [
             'table_id'      => 'required|numeric',

@@ -4,7 +4,7 @@
 /** @var float $totalOutstanding */
 ?>
 
-<div class="space-y-6 fade-in" x-data="{ search: '', showAddModal: false }">
+<div class="space-y-6 fade-in" x-data="{ search: '', showAddModal: false, showImportModal: false }">
 
     <!-- Page Title -->
     <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
@@ -12,10 +12,20 @@
             <h1 class="text-xl sm:text-2xl font-bold text-white tracking-tight">Customers</h1>
             <p class="text-sm text-slate-400 mt-1">Manage your customer database and contacts</p>
         </div>
-        <button @click="showAddModal = true" class="btn-primary">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-            Add Customer
-        </button>
+        <div class="flex items-center gap-2">
+            <a href="<?= e(url('/customers/export')) ?>" class="btn-secondary !py-2.5">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                Export
+            </a>
+            <button @click="showImportModal = true" class="btn-secondary !py-2.5">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                Import
+            </button>
+            <button @click="showAddModal = true" class="btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                Add Customer
+            </button>
+        </div>
     </div>
 
     <!-- Stats Row -->
@@ -205,6 +215,37 @@
                     </div>
                 </form>
             </div>
+        </div>
+    </div>
+
+    <!-- Import Modal -->
+    <div x-show="showImportModal" x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+         @click.self="showImportModal = false"
+         @keydown.escape.window="showImportModal = false">
+        <div class="card w-full max-w-md p-6 relative max-h-[90vh] overflow-y-auto">
+            <button @click="showImportModal = false" class="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+
+            <h3 class="text-lg font-semibold text-white mb-1">Import Customers</h3>
+            <p class="text-sm text-slate-400 mb-5">Upload a CSV with columns: <code class="text-emerald-400">name, phone, whatsapp, email, category, notes</code>. Duplicate phones are skipped.</p>
+
+            <form method="POST" action="<?= e(url('/customers/import')) ?>" enctype="multipart/form-data">
+                <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
+                <div class="border-2 border-dashed border-white/10 rounded-xl p-6 text-center hover:border-emerald-500/40 transition">
+                    <label for="csvFile" class="cursor-pointer block">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-slate-500 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                        <span class="text-sm text-slate-300">Click to select CSV file</span>
+                        <span class="block text-xs text-slate-500 mt-1">or drop it here</span>
+                    </label>
+                    <input id="csvFile" name="csv_file" type="file" accept=".csv,text/csv" class="hidden" required>
+                </div>
+                <div class="flex items-center gap-3 pt-5">
+                    <button type="submit" class="btn-primary">Import CSV</button>
+                    <button type="button" @click="showImportModal = false" class="btn-secondary">Cancel</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

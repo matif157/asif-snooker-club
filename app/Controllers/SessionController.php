@@ -135,15 +135,20 @@ class SessionController extends Controller
 
         $table->update(['status' => 'occupied']);
 
+        // Auto-activate any of today's booking for this table
+        $activatedBooking = \App\Models\Booking::activateForTable((int) $table->id);
+
         \App\Services\AuditService::log('session_started', 'session', $sessionId, null, [
             'table'   => (int) $table->id,
             'customer'=> $customerId ?: null,
             'rate'    => $rate,
+            'booking' => $activatedBooking,
         ]);
 
         Response::success([
             'session_id' => $sessionId,
             'table'      => $table->toArray(),
+            'booking_activated' => $activatedBooking,
         ], 'Session started');
     }
 
@@ -169,6 +174,13 @@ class SessionController extends Controller
         if ($table) {
             $table->update(['status' => 'available']);
         }
+
+        // Complete any active booking tied to this table
+        $completedBooking = \App\Core\Database::execute(
+            "UPDATE bookings SET status = 'completed'
+             WHERE table_id = ? AND booking_date = CURDATE() AND status = 'active'",
+            [(int) $session->table_id]
+        );
 
         // Update customer stats if linked
         if ($session->customer_id) {

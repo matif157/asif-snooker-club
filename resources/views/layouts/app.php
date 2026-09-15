@@ -51,6 +51,24 @@ $currentPage = basename($_SERVER['REQUEST_URI'] ?? '/');
 
         <!-- Page content -->
         <main class="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto w-full">
+            <?php
+                $flashError   = flash('error');
+                $flashSuccess = flash('success');
+            ?>
+            <?php if ($flashSuccess): ?>
+                <div class="mb-4 flex items-center gap-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300" id="flash-success">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <?= e($flashSuccess) ?>
+                    <button onclick="this.parentElement.remove()" class="ml-auto text-emerald-400/70 hover:text-emerald-200">✕</button>
+                </div>
+            <?php endif; ?>
+            <?php if ($flashError): ?>
+                <div class="mb-4 flex items-center gap-2.5 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-300" id="flash-error">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <?= e($flashError) ?>
+                    <button onclick="this.parentElement.remove()" class="ml-auto text-rose-400/70 hover:text-rose-200">✕</button>
+                </div>
+            <?php endif; ?>
             <?= $content ?>
         </main>
 

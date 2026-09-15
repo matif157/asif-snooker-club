@@ -58,8 +58,14 @@ class PaymentController extends Controller
         if ($sessionId > 0) {
             $session = ClubSession::find($sessionId);
             if ($session) {
+                $paidRow = Database::fetchOne(
+                    "SELECT COALESCE(SUM(amount),0) AS t FROM payments
+                     WHERE session_id = ? AND status = 'paid'",
+                    [$sessionId]
+                );
+                $paidTotal = (float) ($paidRow['t'] ?? 0);
                 $session->update([
-                    'payment_status' => 'paid',
+                    'payment_status' => $paidTotal >= (float) $session->amount ? 'paid' : 'partial',
                     'payment_method' => $data['method'],
                 ]);
             }
@@ -72,6 +78,13 @@ class PaymentController extends Controller
                 [(float) $data['amount'], $customerId]
             );
         }
+
+        \App\Services\AuditService::log('payment_received', 'payment', $paymentId, null, [
+            'customer' => $customerId ?: null,
+            'session'  => $sessionId ?: null,
+            'amount'   => (float) $data['amount'],
+            'method'   => $data['method'],
+        ]);
 
         if (Request::isAjax()) {
             Response::success(['id' => $paymentId], 'Payment recorded');

@@ -7,8 +7,8 @@ D Ground, Faisalabad. Digitizes the handwritten daily register into a real-time 
 
 - **Table Command Center** — live visual grid of all tables with real-time timers, statuses (Available / Occupied / Reserved / Maintenance) and one-click start/end
 - **Sessions & Billing** — automatic time tracking, rate calculation (hourly/frame/VIP/night), min charge, extra charges, discounts
-- **Customers CRM** — profiles with visit/revenue history, **click-to-call** (`tel:`) and **WhatsApp** (`wa.me`) buttons
-- **Bookings** — table availability checks, status workflow (Requested → Confirmed → Arrived → Active → Completed)
+- **Customers CRM** — profiles with visit/revenue history, **click-to-call** (`tel:`) and **WhatsApp** (`wa.me`) buttons, **CSV import & export**, per-session payment collection incl. partial
+- **Bookings** — table availability checks, status workflow (Requested → Confirmed → Arrived → Active → Completed), **auto-activation** on session start/end, stale bookings auto-expire
 - **Payments** — Cash, **JazzCash**, Bank Transfer, Card; outstanding balance tracking
 - **Expenses & Finance** — categorized expenses (Electricity, Labour, Rent, etc.) with approval tracking
 - **Daily Closing** — collected by method, sessions billed, expenses, outstanding, with print & WhatsApp share

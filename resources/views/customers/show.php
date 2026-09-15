@@ -18,7 +18,7 @@ $catLabel = match($customer['category'] ?? 'regular') {
 };
 ?>
 
-<div class="space-y-6 fade-in" x-data="{ activeTab: 'sessions' }">
+<div class="space-y-6 fade-in" x-data="{ activeTab: 'sessions', collectSession: null }">
 
     <!-- Breadcrumb -->
     <div class="flex items-center gap-2 text-xs text-slate-500">
@@ -149,6 +149,10 @@ $catLabel = match($customer['category'] ?? 'regular') {
                                             'unpaid'  => 'rose',
                                             default   => 'slate',
                                         } ?>"><?= ucfirst(e($s['payment_status'] ?? '')) ?></span>
+                                        <?php if (in_array($s['payment_status'] ?? '', ['unpaid', 'partial'])): ?>
+                                            <button @click="collectSession = { id: <?= (int) ($s['id'] ?? 0) ?>, amount: <?= (float) $s['amount'] ?> }"
+                                                    class="ml-2 text-xs text-emerald-400 hover:text-emerald-300 font-medium">Collect →</button>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -236,6 +240,49 @@ $catLabel = match($customer['category'] ?? 'regular') {
                     </table>
                 </div>
             <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- Collect Payment Modal -->
+    <div x-show="collectSession" x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+         @click.self="collectSession = null"
+         @keydown.escape.window="collectSession = null">
+        <div class="card w-full max-w-sm p-6 relative">
+            <button @click="collectSession = null" class="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+
+            <h3 class="text-lg font-semibold text-white mb-1">Collect Payment</h3>
+            <p class="text-sm text-slate-400 mb-5">Record a payment against this session for <span class="text-white font-semibold"><?= e($customer['name'] ?? '') ?></span>.</p>
+
+            <form method="POST" action="<?= e(url('/payments')) ?>" class="space-y-4">
+                <?= csrf_field() ?>
+                <input type="hidden" name="customer_id" value="<?= (int) ($customer['id'] ?? 0) ?>">
+                <input type="hidden" name="session_id" x-bind:value="collectSession && collectSession.id">
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1.5">Amount (Rs)</label>
+                    <input type="number" name="amount" min="1" step="1" class="input" required
+                           x-bind:value="collectSession && collectSession.amount">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1.5">Payment Method</label>
+                    <select name="method" class="input">
+                        <?php foreach (\App\Models\Payment::METHODS as $m => $label): ?>
+                            <option value="<?= e($m) ?>"><?= e($label) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1.5">Transaction Reference</label>
+                    <input name="transaction_ref" class="input" placeholder="TRX No. (optional)">
+                </div>
+                <div class="flex items-center gap-3 pt-2">
+                    <button type="submit" class="btn-primary">Record Payment</button>
+                    <button type="button" @click="collectSession = null" class="btn-secondary">Cancel</button>
+                </div>
+            </form>
         </div>
     </div>
 
