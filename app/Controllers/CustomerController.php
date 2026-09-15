@@ -149,7 +149,7 @@ class CustomerController extends Controller
 
     public function apiSearch(): void
     {
-        $q = trim((string) (Request::get('q') ?? ''));
+        $q = trim((string) (Request::get('term') ?? Request::get('q') ?? ''));
         if ($q === '') {
             Response::success([]);
         }
