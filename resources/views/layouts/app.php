@@ -64,5 +64,6 @@ $currentPage = basename($_SERVER['REQUEST_URI'] ?? '/');
 <?= $content ?>
 <?php endif; ?>
 <script src="/assets/js/app.js"></script>
+<script src="/assets/js/tables.js"></script>
 </body>
 </html>

@@ -40,7 +40,7 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
                     <p class="text-xs text-slate-500 mt-0.5">Today</p>
                 </div>
             </div>
-            <p class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Rs <?= number_format($todayRevenue) ?></p>
+            <p class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Rs <span data-kpi="revenue"><?= number_format($todayRevenue) ?></span></p>
             <div class="mt-3 flex items-center gap-2 text-xs">
                 <span class="text-slate-400">Expenses: <span class="text-rose-400">Rs <?= number_format($todayExpenses) ?></span></span>
             </div>
@@ -57,7 +57,7 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
                     <p class="text-xs text-slate-500 mt-0.5">Today</p>
                 </div>
             </div>
-            <p class="text-2xl sm:text-3xl font-bold text-white tracking-tight"><?= $sessionStats['count'] ?></p>
+            <p class="text-2xl sm:text-3xl font-bold text-white tracking-tight"><span data-kpi="sessions"><?= $sessionStats['count'] ?></span></p>
             <div class="mt-3 flex items-center gap-2 text-xs text-slate-400">
                 Collected: <span class="text-emerald-400">Rs <?= number_format($sessionStats['collected']) ?></span>
             </div>
@@ -74,7 +74,7 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
                     <p class="text-xs text-slate-500 mt-0.5">Tables</p>
                 </div>
             </div>
-            <p class="text-2xl sm:text-3xl font-bold text-white tracking-tight"><?= $occupiedCount ?> <span class="text-lg text-slate-500 font-normal">/ <?= $tableCount ?></span></p>
+            <p class="text-2xl sm:text-3xl font-bold text-white tracking-tight"><span data-kpi="active_tables"><?= $occupiedCount ?></span> <span class="text-lg text-slate-500 font-normal">/ <?= $tableCount ?></span></p>
             <div class="mt-3 flex items-center gap-2 text-xs text-slate-400">
                 <span class="inline-flex items-center gap-1">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
@@ -95,7 +95,7 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
                 </div>
             </div>
             <p class="text-2xl sm:text-3xl font-bold <?= $estimatedProfit >= 0 ? 'text-emerald-400' : 'text-rose-400' ?> tracking-tight">
-                Rs <?= number_format($estimatedProfit) ?>
+                Rs <span data-kpi="profit"><?= number_format($estimatedProfit) ?></span>
             </p>
             <div class="mt-3 flex items-center gap-2 text-xs text-slate-400">
                 Revenue − Expenses

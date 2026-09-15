@@ -6,6 +6,24 @@ namespace App\Core;
 
 class Request
 {
+    private static ?array $jsonBody = null;
+
+    public static function jsonBody(): array
+    {
+        if (self::$jsonBody === null) {
+            $raw = file_get_contents('php://input');
+            self::$jsonBody = [];
+            if (!empty($raw)) {
+                $decoded = json_decode($raw, true);
+                if (is_array($decoded)) {
+                    self::$jsonBody = $decoded;
+                }
+            }
+        }
+
+        return self::$jsonBody;
+    }
+
     public static function isPost(): bool
     {
         return ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST';
@@ -24,17 +42,17 @@ class Request
 
     public static function post(string $key, mixed $default = null): mixed
     {
-        return $_POST[$key] ?? $default;
+        return $_POST[$key] ?? self::jsonBody()[$key] ?? $default;
     }
 
     public static function input(string $key, mixed $default = null): mixed
     {
-        return $_POST[$key] ?? $_GET[$key] ?? $default;
+        return $_POST[$key] ?? $_GET[$key] ?? self::jsonBody()[$key] ?? $default;
     }
 
     public static function all(): array
     {
-        return array_merge($_GET, $_POST);
+        return array_merge($_GET, $_POST, self::jsonBody());
     }
 
     public static function has(string $key): bool

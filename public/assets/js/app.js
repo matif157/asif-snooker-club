@@ -66,3 +66,39 @@ async function apiGet(url) {
 function formatCurrency(amount) {
     return 'Rs ' + Number(amount).toLocaleString('en-PK', {maximumFractionDigits: 0});
 }
+
+// Dashboard live KPI updates (kpis: [data-revenue], [data-sessions], ...) —
+// lightweight polling, works on any hosting.
+document.addEventListener('DOMContentLoaded', () => {
+    const kpiRevenue = document.querySelector('[data-kpi="revenue"]');
+    if (!kpiRevenue) return;
+
+    async function syncKpis() {
+        try {
+            const res = await apiGet('/api/dashboard/stats');
+            if (!res.success) return;
+
+            const syncEl = document.getElementById('last-sync');
+            if (syncEl) syncEl.textContent = 'just now';
+
+            const set = (key, el) => {
+                const node = document.querySelector('[data-kpi="' + key + '"]');
+                if (node && res.data[key] !== undefined) node.textContent = res.data[key];
+            };
+
+            const revenue = document.querySelector('[data-kpi="revenue"]');
+            if (revenue) revenue.textContent = 'Rs ' + Number(res.data.revenue || 0).toLocaleString();
+
+            const sessions = document.querySelector('[data-kpi="sessions"]');
+            if (sessions) sessions.textContent = res.data.sessions;
+
+            const active = document.querySelector('[data-kpi="active_tables"]');
+            if (active) active.textContent = res.data.active_tables;
+
+            const profit = document.querySelector('[data-kpi="profit"]');
+            if (profit) profit.textContent = 'Rs ' + Number(res.data.profit || 0).toLocaleString();
+        } catch (e) {}
+    }
+    setInterval(syncKpis, 15000);
+    syncKpis();
+});

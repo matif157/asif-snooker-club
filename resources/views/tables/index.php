@@ -80,16 +80,16 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
                 </div>
                 <p class="text-xs text-slate-400 mb-2 truncate"><?= e($table['name']) ?></p>
 
-                <?php if ($isOccupied && $session): ?>
-                    <div class="flex items-center gap-1.5 mb-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-emerald-400 timer-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span class="text-xs font-mono text-emerald-400 font-semibold timer-display"
-                              data-start="<?= e($session['start_time'] ?? '') ?>"
-                              data-paused="<?= e((string)($session['paused_total_sec'] ?? 0)) ?>"
-                              data-status="<?= e($session['status'] ?? '') ?>">
-                            <?= format_duration($elapsed) ?>
-                        </span>
-                    </div>
+<?php if ($isOccupied && $session): ?>
+                     <div class="flex items-center gap-1.5 mb-2">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-emerald-400 timer-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                         <span class="text-xs font-mono text-emerald-400 font-semibold timer-display"
+                               data-start="<?= date('U', strtotime($session['start_time'])) ?>"
+                               data-paused="<?= e((string)($session['paused_total_sec'] ?? 0)) ?>"
+                               data-status="<?= e($session['status'] ?? '') ?>">
+                             <?= format_duration($elapsed) ?>
+                         </span>
+                     </div>
                     <?php if (!empty($session['customer_name'])): ?>
                         <p class="text-[11px] text-slate-400 truncate mb-1"><?= e($session['customer_name']) ?></p>
                     <?php endif; ?>
@@ -190,7 +190,7 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
                             </td>
                             <td>
                                 <span class="font-mono text-sm font-semibold session-timer <?= $sess['status'] === 'active' ? 'text-emerald-400' : 'text-amber-400' ?>"
-                                      data-start-time="<?= e($sess['start_time']) ?>"
+                                      data-start-time="<?= date('U', strtotime($sess['start_time'])) ?>"
                                       data-paused-total="<?= (int) ($sess['paused_total_sec'] ?? 0) ?>"
                                       data-session-status="<?= e($sess['status']) ?>">
                                     <?= format_duration($elapsedNow) ?>
@@ -516,27 +516,25 @@ function endSession(sessionId, tableId) {
 // ── Live Timer System ──────────────────────────────────────────
 function tickTimers() {
     document.querySelectorAll('.timer-display').forEach(el => {
-        const start = el.dataset.start;
+        const start = parseInt(el.dataset.start || '0', 10);
         const paused = parseInt(el.dataset.paused || '0', 10);
         const status = el.dataset.status;
         if (!start || status !== 'active') return;
 
         const now = Math.floor(Date.now() / 1000);
-        const started = Math.floor(new Date(start + 'Z').getTime() / 1000);
-        let elapsed = now - started - paused;
+        let elapsed = now - start - paused;
         if (elapsed < 0) elapsed = 0;
         el.textContent = formatDuration(elapsed);
     });
 
     document.querySelectorAll('.session-timer').forEach(el => {
-        const start = el.dataset.startTime;
+        const start = parseInt(el.dataset.startTime || '0', 10);
         const paused = parseInt(el.dataset.pausedTotal || '0', 10);
         const status = el.dataset.sessionStatus;
         if (!start || status !== 'active') return;
 
         const now = Math.floor(Date.now() / 1000);
-        const started = Math.floor(new Date(start + 'Z').getTime() / 1000);
-        let elapsed = now - started - paused;
+        let elapsed = now - start - paused;
         if (elapsed < 0) elapsed = 0;
         el.textContent = formatDuration(elapsed);
 

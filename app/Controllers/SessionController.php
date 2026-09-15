@@ -101,6 +101,8 @@ class SessionController extends Controller
         }
 
         $amount = $session->computeAmount();
+        $elapsed = $session->billedSeconds();
+        $hours = $elapsed / 3600.0;
 
         $session->update([
             'end_time'      => date('Y-m-d H:i:s'),
@@ -114,10 +116,15 @@ class SessionController extends Controller
             $table->update(['status' => 'available']);
         }
 
+        // Update customer stats if linked
+        if ($session->customer_id) {
+            Customer::incrementStats((int) $session->customer_id, $hours, $amount, $amount);
+        }
+
         Response::success([
             'session_id' => $session->id,
             'amount'     => $amount,
-            'duration'   => $session->billedSeconds(),
+            'duration'   => $elapsed,
         ], 'Session ended');
     }
 
