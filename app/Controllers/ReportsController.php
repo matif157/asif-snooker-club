@@ -36,7 +36,8 @@ class ReportsController extends Controller
         $expenses = Database::fetchOne(
             "SELECT COALESCE(SUM(amount), 0) AS total
              FROM expenses
-             WHERE CAST(created_at AS DATE) = ?",
+             WHERE status = 'approved'
+               AND CAST(created_at AS DATE) = ?",
             [$date]
         );
         $expenseTotal = (float) ($expenses['total'] ?? 0);

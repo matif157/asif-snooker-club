@@ -43,7 +43,7 @@ class Expense extends BaseModel
     {
         $row = Database::fetchOne(
             "SELECT COALESCE(SUM(amount), 0) AS total
-             FROM expenses WHERE expense_date = CURDATE()"
+             FROM expenses WHERE expense_date = CURDATE() AND status = 'approved'"
         );
         return (float) ($row['total'] ?? 0);
     }

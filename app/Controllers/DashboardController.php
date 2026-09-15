@@ -130,7 +130,8 @@ class DashboardController extends Controller
         $expenses = Database::query(
             "SELECT DATE(created_at) AS d, COALESCE(SUM(amount), 0) AS total
              FROM expenses
-             WHERE created_at >= ?
+             WHERE status = 'approved'
+               AND created_at >= ?
              GROUP BY DATE(created_at)",
             [$start]
         );

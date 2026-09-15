@@ -10,6 +10,7 @@ use App\Core\Response;
 use App\Models\User;
 use App\Models\Expense;
 use App\Services\AuditService;
+use App\Services\BackupService;
 use App\Services\SettingsService;
 
 class SettingsController extends Controller
@@ -23,12 +24,44 @@ class SettingsController extends Controller
         $settings = SettingsService::all();
         $users = \App\Core\Database::query('SELECT id, name, email, phone, role, status, last_login_at FROM users ORDER BY id ASC');
         $audit = AuditService::recent(20);
+        $backups = BackupService::list();
 
         $this->view('settings/index', [
             'settings' => $settings,
             'users'    => $users,
             'audit'    => $audit,
+            'backups'  => $backups,
         ]);
+    }
+
+    public function backup(): void
+    {
+        $path = BackupService::create();
+        $bytes = filesize($path);
+
+        AuditService::log('backup_created', 'backup', null, null, [
+            'name' => basename($path),
+            'size' => $bytes,
+        ]);
+
+        flash('success', 'Database backup created: ' . basename($path));
+        Response::redirect('/settings#backups');
+    }
+
+    public function downloadBackup(string $name): void
+    {
+        $safe = basename($name);
+        $path = BackupService::backupDir() . '/' . $safe;
+
+        if (!preg_match('/^backup-\d{8}-\d{6}\.sql$/', $safe) || !file_exists($path)) {
+            Response::error('Backup not found', 404);
+        }
+
+        header('Content-Type: application/sql');
+        header('Content-Disposition: attachment; filename="' . $safe . '"');
+        header('Content-Length: ' . filesize($path));
+        readfile($path);
+        exit;
     }
 
     public function update(): void

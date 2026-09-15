@@ -63,6 +63,7 @@ $router->post('/payments', [PaymentController::class, 'store']);
 // Expenses
 $router->get('/expenses', [ExpenseController::class, 'index']);
 $router->post('/expenses', [ExpenseController::class, 'store']);
+$router->post('/expenses/{id}/status', [ExpenseController::class, 'setStatus']);
 
 // Reports
 $router->get('/reports/daily', [ReportsController::class, 'daily']);
@@ -71,6 +72,8 @@ $router->get('/reports/analytics', [ReportsController::class, 'analytics']);
 // Settings & Staff
 $router->get('/settings', [SettingsController::class, 'index']);
 $router->post('/settings', [SettingsController::class, 'update']);
+$router->post('/settings/backup', [SettingsController::class, 'backup']);
+$router->get('/settings/backups/{name}', [SettingsController::class, 'downloadBackup']);
 $router->post('/settings/users/create', [SettingsController::class, 'createUser']);
 $router->post('/settings/users/{id}/update', [SettingsController::class, 'updateUser']);
 

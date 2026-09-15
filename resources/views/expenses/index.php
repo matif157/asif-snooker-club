@@ -100,6 +100,7 @@
                     </thead>
                     <tbody>
                         <?php foreach ($expenses as $expense): ?>
+                            <?php $canApprove = user_can('finance.view') || current_user()?->role === 'owner'; ?>
                             <tr>
                                 <td class="text-slate-400"><?= e(date('M j, Y', strtotime($expense['expense_date']))) ?></td>
                                 <td>
@@ -109,12 +110,30 @@
                                 <td class="text-slate-400"><?= e($expense['vendor'] ?? '—') ?></td>
                                 <td class="text-slate-400 max-w-[220px] truncate"><?= e($expense['description'] ?? '—') ?></td>
                                 <td>
-                                    <span class="badge badge-<?= match($expense['status'] ?? 'approved') {
-                                        'approved' => 'emerald',
-                                        'pending'  => 'amber',
-                                        'rejected' => 'rose',
-                                        default     => 'slate',
-                                    } ?>"><?= e(ucfirst($expense['status'] ?? 'approved')) ?></span>
+                                    <div class="flex items-center gap-2">
+                                        <span class="badge badge-<?= match($expense['status'] ?? 'approved') {
+                                            'approved' => 'emerald',
+                                            'pending'  => 'amber',
+                                            'rejected' => 'rose',
+                                            default     => 'slate',
+                                        } ?>"><?= e(ucfirst($expense['status'] ?? 'approved')) ?></span>
+                                        <?php if (($expense['status'] ?? '') !== 'approved' && $canApprove): ?>
+                                            <form method="POST" action="<?= e(url('/expenses/' . (int) $expense['id'] . '/status')) ?>" class="inline-flex gap-1">
+                                                <?= csrf_field() ?>
+                                                <?php if (($expense['status'] ?? '') !== 'approved'): ?>
+                                                    <input type="hidden" name="status" value="approved">
+                                                    <button class="text-xs text-emerald-400 hover:text-emerald-300 font-medium" title="Approve">Approve</button>
+                                                <?php endif; ?>
+                                            </form>
+                                        <?php endif; ?>
+                                        <?php if (($expense['status'] ?? '') !== 'rejected' && $canApprove): ?>
+                                            <form method="POST" action="<?= e(url('/expenses/' . (int) $expense['id'] . '/status')) ?>" class="inline-flex gap-1">
+                                                <?= csrf_field() ?>
+                                                <input type="hidden" name="status" value="rejected">
+                                                <button class="text-xs text-rose-400 hover:text-rose-300 font-medium" title="Reject">Reject</button>
+                                            </form>
+                                        <?php endif; ?>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

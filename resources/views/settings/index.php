@@ -2,6 +2,7 @@
 /** @var array $settings */
 /** @var array $users */
 /** @var array $audit */
+/** @var array $backups */
 ?>
 
 <div class="space-y-6 fade-in">
@@ -85,6 +86,44 @@
                 <?php endforeach; endif; ?>
             </div>
         </div>
+    </div>
+
+    <!-- Database backups -->
+    <div class="card p-5 sm:p-6" id="backups">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div>
+                <h2 class="text-lg font-semibold text-white">Database Backups</h2>
+                <p class="text-sm text-slate-400 mt-1">Portable SQL dumps stored locally — download anytime, last 20 kept.</p>
+            </div>
+            <form method="POST" action="<?= e(url('/settings/backup')) ?>">
+                <?= csrf_field() ?>
+                <button type="submit" class="btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    Backup Now
+                </button>
+            </form>
+        </div>
+        <?php if (empty($backups)): ?>
+            <p class="text-sm text-slate-500">No backups yet — click "Backup Now" to create the first one.</p>
+        <?php else: ?>
+            <div class="overflow-x-auto">
+                <table class="data-table">
+                    <thead><tr><th>File</th><th>Size</th><th>Created</th><th></th></tr></thead>
+                    <tbody>
+                    <?php foreach ($backups as $b): ?>
+                        <tr>
+                            <td class="font-mono text-xs text-slate-300"><?= e($b['name']) ?></td>
+                            <td class="text-slate-400"><?= number_format(round($b['size'] / 1024)) ?> KB</td>
+                            <td class="text-slate-400"><?= e(date('M j, g:i A', $b['time'])) ?></td>
+                            <td class="text-right">
+                                <a href="<?= e(url('/settings/backups/' . $b['name'])) ?>" class="text-xs text-emerald-400 hover:text-emerald-300 font-medium">Download</a>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
     </div>
 
     <!-- Staff management -->
