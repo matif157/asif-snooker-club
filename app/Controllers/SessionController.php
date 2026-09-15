@@ -87,6 +87,12 @@ class SessionController extends Controller
 
         $table->update(['status' => 'occupied']);
 
+        \App\Services\AuditService::log('session_started', 'session', $sessionId, null, [
+            'table'   => (int) $table->id,
+            'customer'=> $customerId ?: null,
+            'rate'    => $rate,
+        ]);
+
         Response::success([
             'session_id' => $sessionId,
             'table'      => $table->toArray(),
@@ -120,6 +126,11 @@ class SessionController extends Controller
         if ($session->customer_id) {
             Customer::incrementStats((int) $session->customer_id, $hours, $amount, $amount);
         }
+
+        \App\Services\AuditService::log('session_ended', 'session', $session->id, null, [
+            'table'  => (int) $session->table_id,
+            'amount' => $amount,
+        ]);
 
         Response::success([
             'session_id' => $session->id,

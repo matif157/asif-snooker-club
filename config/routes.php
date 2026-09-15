@@ -8,7 +8,9 @@ use App\Controllers\CustomerController;
 use App\Controllers\DashboardController;
 use App\Controllers\ExpenseController;
 use App\Controllers\PaymentController;
+use App\Controllers\ReportsController;
 use App\Controllers\SessionController;
+use App\Controllers\SettingsController;
 use App\Controllers\TableController;
 
 /** @var App\Core\Router $router */
@@ -59,6 +61,15 @@ $router->post('/payments', [PaymentController::class, 'store']);
 // Expenses
 $router->get('/expenses', [ExpenseController::class, 'index']);
 $router->post('/expenses', [ExpenseController::class, 'store']);
+
+// Reports
+$router->get('/reports/daily', [ReportsController::class, 'daily']);
+
+// Settings & Staff
+$router->get('/settings', [SettingsController::class, 'index']);
+$router->post('/settings', [SettingsController::class, 'update']);
+$router->post('/settings/users/create', [SettingsController::class, 'createUser']);
+$router->post('/settings/users/{id}/update', [SettingsController::class, 'updateUser']);
 
 // ── API / AJAX routes ──────────────────────────────────────────────────
 $router->get('/api/tables', [TableController::class, 'apiList']);

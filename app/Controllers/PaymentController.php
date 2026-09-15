@@ -113,6 +113,12 @@ class PaymentController extends Controller
             );
         }
 
+        \App\Services\AuditService::log('payment_received', 'payment', $paymentId, null, [
+            'session' => (int) $session->id,
+            'amount'  => $amount,
+            'method'  => $method,
+        ]);
+
         Response::success(['payment_id' => $paymentId, 'amount' => $amount], 'Payment accepted');
     }
 }
