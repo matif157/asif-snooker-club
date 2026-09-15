@@ -6,7 +6,7 @@ namespace App\Core;
 
 class View
 {
-    public static function render(string $template, array $data = [], string $layout = 'app'): void
+    public static function render(string $template, array $data = [], ?string $layout = 'app'): void
     {
         extract($data);
 

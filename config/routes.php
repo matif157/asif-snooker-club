@@ -19,15 +19,6 @@ $router->post('/login', [AuthController::class, 'login']);
 $router->post('/logout', [AuthController::class, 'logout']);
 
 // ── Authenticated web routes ───────────────────────────────────────────
-$router->middleware(function () {
-    if (!is_authenticated()) {
-        http_response_code(401);
-        header('Location: /login');
-        return false;
-    }
-    return true;
-});
-
 $router->get('/', [DashboardController::class, 'index']);
 $router->get('/dashboard', [DashboardController::class, 'index']);
 
@@ -79,3 +70,5 @@ $router->post('/api/sessions/{id}/pay', [PaymentController::class, 'apiPay']);
 $router->get('/api/customers/search', [CustomerController::class, 'apiSearch']);
 $router->get('/api/dashboard/stats', [DashboardController::class, 'apiStats']);
 $router->get('/api/activity-feed', [DashboardController::class, 'apiActivity']);
+$router->get('/api/sse/tables', [SessionController::class, 'sseTables']);
+$router->get('/api/sse/activity', [SessionController::class, 'sseActivity']);

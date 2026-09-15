@@ -6,7 +6,7 @@ namespace App\Core;
 
 abstract class Controller
 {
-    protected function view(string $template, array $data = [], string $layout = 'app'): void
+    protected function view(string $template, array $data = [], ?string $layout = 'app'): void
     {
         View::render($template, $data, $layout);
     }

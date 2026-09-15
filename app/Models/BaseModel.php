@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Core\Database;
 
+#[\AllowDynamicProperties]
 class BaseModel
 {
     protected string $table = '';

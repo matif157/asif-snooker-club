@@ -18,16 +18,16 @@ class Auth
             return false;
         }
 
-        if (!password_verify($password, $user['password_hash'])) {
+        if (!password_verify($password, $user->password_hash)) {
             return false;
         }
 
         // Rehash if needed (PHP auto-rehashes with Argon2id)
-        if (password_needs_rehash($user['password_hash'], PASSWORD_ARGON2ID)) {
-            User::updatePassword($user['id'], $password);
+        if (password_needs_rehash($user->password_hash, PASSWORD_ARGON2ID)) {
+            User::updatePassword((int) $user->id, $password);
         }
 
-        Session::set(self::SESSION_KEY, (int) $user['id']);
+        Session::set(self::SESSION_KEY, (int) $user->id);
         return true;
     }
 

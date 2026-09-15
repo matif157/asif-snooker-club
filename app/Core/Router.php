@@ -113,6 +113,17 @@ class Router
             }
         }
 
+        // Cast numeric route params to native types
+        $args = array_map(function (string $value): mixed {
+            if (ctype_digit($value)) {
+                return (int) $value;
+            }
+            if (is_numeric($value)) {
+                return (float) $value;
+            }
+            return $value;
+        }, $params);
+
         if (is_array($handler)) {
             [$class, $method] = $handler;
 
@@ -121,10 +132,10 @@ class Router
             }
 
             $controller = new $class();
-            return $controller->{$method}(...array_values($params));
+            return $controller->{$method}(...array_values($args));
         }
 
-        return $handler(...array_values($params));
+        return $handler(...array_values($args));
     }
 
     private function addRoute(string $method, string $path, callable|array $handler): void
