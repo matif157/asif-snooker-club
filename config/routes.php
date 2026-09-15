@@ -69,6 +69,7 @@ $router->post('/expenses/{id}/status', [ExpenseController::class, 'setStatus']);
 
 // Reports
 $router->get('/reports/daily', [ReportsController::class, 'daily']);
+$router->get('/reports/pnl', [ReportsController::class, 'pnl']);
 $router->get('/reports/analytics', [ReportsController::class, 'analytics']);
 $router->get('/reports/audit', [ReportsController::class, 'audit']);
 

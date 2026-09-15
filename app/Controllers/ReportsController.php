@@ -147,6 +147,112 @@ class ReportsController extends Controller
         ]);
     }
 
+    public function pnl(): void
+    {
+        if (!user_can('reports.view') && !user_can('finance.view')) {
+            $this->error('You do not have permission to view reports.');
+        }
+
+        $month = Request::get('month');
+        $month = preg_match('/^\d{4}-\d{2}$/', (string) $month) ? $month : date('Y-m');
+        [$y, $m] = array_map('intval', explode('-', $month));
+        $monthStart = sprintf('%04d-%02d-01 00:00:00', $y, $m);
+        $daysInMonth = (int) date('t', strtotime(substr($monthStart, 0, 10)));
+        $monthEnd   = sprintf('%04d-%02d-%02d 23:59:59', $y, $m, $daysInMonth);
+
+        // Revenue
+        $revenueRow = Database::fetchOne(
+            "SELECT COALESCE(SUM(amount), 0) AS total, COUNT(*) AS txns
+             FROM payments WHERE paid_at BETWEEN ? AND ? AND status = 'paid'",
+            [$monthStart, $monthEnd]
+        );
+        $revenue = (float) ($revenueRow['total'] ?? 0);
+        $txns    = (int) ($revenueRow['txns'] ?? 0);
+
+        $byMethod = Database::query(
+            "SELECT method, COALESCE(SUM(amount), 0) AS total, COUNT(*) AS count
+             FROM payments WHERE paid_at BETWEEN ? AND ? AND status = 'paid'
+             GROUP BY method ORDER BY total DESC",
+            [$monthStart, $monthEnd]
+        );
+
+        // Expenses (approved only)
+        $expenseRow = Database::fetchOne(
+            "SELECT COALESCE(SUM(amount), 0) AS total, COUNT(*) AS count
+             FROM expenses WHERE expense_date BETWEEN ? AND ? AND status = 'approved'",
+            [substr($monthStart, 0, 10), substr($monthEnd, 0, 10)]
+        );
+        $expenses = (float) ($expenseRow['total'] ?? 0);
+        $expCount = (int) ($expenseRow['count'] ?? 0);
+
+        $byCategory = Database::query(
+            "SELECT category, COALESCE(SUM(amount), 0) AS total, COUNT(*) AS count
+             FROM expenses WHERE expense_date BETWEEN ? AND ? AND status = 'approved'
+             GROUP BY category ORDER BY total DESC",
+            [substr($monthStart, 0, 10), substr($monthEnd, 0, 10)]
+        );
+
+        // Sessions billed in month (for comparison)
+        $sessionRow = Database::fetchOne(
+            "SELECT COUNT(*) AS count, COALESCE(SUM(amount), 0) AS billed
+             FROM sessions WHERE start_time BETWEEN ? AND ? AND status = 'completed'",
+            [$monthStart, $monthEnd]
+        );
+
+        // Outstanding balance at period end
+        $outstanding = (float) (
+            Database::fetchOne(
+                "SELECT COALESCE(SUM(amount), 0) AS t FROM sessions
+                 WHERE end_time IS NOT NULL AND end_time <= ? AND payment_status != 'paid'",
+                [$monthEnd]
+            )['t'] ?? 0
+        );
+
+        // Per-day revenue vs expenses for chart
+        $revDays = Database::query(
+            "SELECT DATE(paid_at) AS d, COALESCE(SUM(amount), 0) AS total
+             FROM payments WHERE paid_at BETWEEN ? AND ? AND status = 'paid'
+             GROUP BY DATE(paid_at)",
+            [$monthStart, $monthEnd]
+        );
+        $expDays = Database::query(
+            "SELECT expense_date AS d, COALESCE(SUM(amount), 0) AS total
+             FROM expenses WHERE expense_date BETWEEN ? AND ? AND status = 'approved'
+             GROUP BY expense_date",
+            [substr($monthStart, 0, 10), substr($monthEnd, 0, 10)]
+        );
+        $revByDay = array_column($revDays, 'total', 'd');
+        $expByDay = array_column($expDays, 'total', 'd');
+
+        $days = [];
+        for ($i = 1; $i <= $daysInMonth; $i++) {
+            $d = sprintf('%04d-%02d-%02d', $y, $m, $i);
+            $days[] = [
+                'date'    => $d,
+                'revenue' => (float) ($revByDay[$d] ?? 0),
+                'expense' => (float) ($expByDay[$d] ?? 0),
+            ];
+        }
+
+        $this->view('reports/pnl', [
+            'month'       => $month,
+            'display'     => date('F Y', strtotime(substr($monthStart, 0, 10))),
+            'prevMonth'   => date('Y-m', strtotime(substr($monthStart, 0, 10) . ' -1 month')),
+            'nextMonth'   => date('Y-m', strtotime(substr($monthStart, 0, 10) . ' +1 month')),
+            'revenue'     => $revenue,
+            'txns'        => $txns,
+            'byMethod'    => $byMethod,
+            'expenses'    => $expenses,
+            'expCount'    => $expCount,
+            'byCategory'  => $byCategory,
+            'sessionCount'=> (int) ($sessionRow['count'] ?? 0),
+            'sessionBilled' => (float) ($sessionRow['billed'] ?? 0),
+            'outstanding' => $outstanding,
+            'net'         => $revenue - $expenses,
+            'days'        => $days,
+        ]);
+    }
+
     public function audit(): void
     {
         if (!user_can('reports.view') && !user_can('finance.view')) {
