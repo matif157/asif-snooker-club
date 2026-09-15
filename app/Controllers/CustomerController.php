@@ -9,6 +9,7 @@ use App\Core\Database;
 use App\Core\Request;
 use App\Core\Response;
 use App\Models\Customer;
+use App\Services\SettingsService;
 
 class CustomerController extends Controller
 {
@@ -28,6 +29,35 @@ class CustomerController extends Controller
             'vipCount'       => $vipCount,
             'memberCount'    => $memberCount,
             'totalOutstanding'=> $outstanding['total'] ?? 0,
+        ]);
+    }
+
+    public function broadcast(): void
+    {
+        $audience = Request::get('audience', 'active');
+        $message  = Request::get('message', SettingsService::whatsappTemplate());
+        $submitted = Request::get('preview') === '1';
+
+        $customers = Customer::audience($audience);
+
+        $prepared = [];
+        foreach ($customers as $c) {
+            $text = str_replace('{name}', $c['name'], $message);
+            $prepared[] = [
+                'name'    => $c['name'],
+                'phone'   => $c['phone'],
+                'outstanding' => (float) ($c['outstanding_balance'] ?? 0),
+                'lastVisit'   => $c['last_visit_at'] ?? null,
+                'message'     => $text,
+                'waLink'      => Customer::whatsappLink($c['phone'], $text),
+            ];
+        }
+
+        $this->view('customers/broadcast', [
+            'audience'  => $audience,
+            'message'   => $message,
+            'customers' => $prepared,
+            'submitted' => $submitted,
         ]);
     }
 
@@ -145,12 +175,30 @@ class CustomerController extends Controller
             $this->error('You do not have permission to export customers.');
         }
 
-        $rows = Database::query(
-            "SELECT name, phone, whatsapp, email, category, total_visits,
-                    total_hours, total_spent, outstanding_balance, last_visit_at, notes
-             FROM customers
-             ORDER BY name ASC"
-        );
+        $audience = Request::get('audience', 'active');
+        if ($audience === 'all') {
+            $selected = Database::query(
+                "SELECT name, phone, whatsapp, email, category, total_visits,
+                        total_hours, total_spent, outstanding_balance, last_visit_at, notes
+                 FROM customers
+                 ORDER BY name ASC"
+            );
+        } else {
+            $list = Customer::audience($audience, 500);
+            $selected = [];
+            foreach ($list as $c) {
+                $full = Database::fetchOne(
+                    'SELECT name, phone, whatsapp, email, category, total_visits,
+                            total_hours, total_spent, outstanding_balance, last_visit_at, notes
+                     FROM customers WHERE id = ?',
+                    [$c['id']]
+                );
+                if ($full) {
+                    $selected[] = $full;
+                }
+            }
+        }
+        $rows = $selected;
 
         header('Content-Type: text/csv; charset=UTF-8');
         header('Content-Disposition: attachment; filename="customers-' . date('Y-m-d') . '.csv"');

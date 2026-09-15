@@ -25,6 +25,17 @@
     </div>
 
     <!-- Summary -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <a href="#" onclick="return sharePnl(this)"
+           data-month="<?= e($month) ?>"
+           data-revenue="<?= (int) $revenue ?>" data-expenses="<?= (int) $expenses ?>"
+           data-net="<?= (int) $net ?>" data-txns="<?= (int) $txns ?>" data-sessions="<?= (int) $sessionCount ?>"
+           class="btn-primary self-start">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.94 6.45 17.5 2 12.04 2zm5.83 14.13c-.25.7-1.45 1.33-2.02 1.42-.52.08-1.17.11-1.88-.12-.43-.14-.99-.32-1.7-.63-3-1.3-4.95-4.32-5.1-4.52-.15-.2-1.21-1.61-1.21-3.07 0-1.46.77-2.17 1.04-2.47.27-.3.59-.37.79-.37h.57c.18 0 .43-.07.67.51.25.6.85 2.07.92 2.22.08.15.13.33.03.53-.1.2-.15.32-.3.5-.15.18-.32.4-.45.53-.15.15-.31.31-.13.61.18.3.79 1.3 1.7 2.11 1.17 1.04 2.15 1.37 2.46 1.52.3.15.48.13.66-.08.18-.2.76-.88.96-1.19.2-.3.4-.25.67-.15.28.1 1.75.83 2.05.98.3.15.5.22.57.35.08.13.08.73-.17 1.42z"/></svg>
+            Share Month to WhatsApp
+        </a>
+    </div>
+
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="stat-card">
             <span class="text-xs uppercase tracking-wider text-slate-500">Revenue</span>
@@ -105,6 +116,16 @@
 </div>
 
 <script>
+function sharePnl(el) {
+    const text = 'Monthly closing ' + el.dataset.month +
+        ' — Revenue: Rs ' + Number(el.dataset.revenue).toLocaleString() +
+        ', Expenses: Rs ' + Number(el.dataset.expenses).toLocaleString() +
+        ', Net: Rs ' + Number(el.dataset.net).toLocaleString() +
+        ' (' + el.dataset.txns + ' payments, ' + el.dataset.sessions + ' sessions) — Asif Snooker Club';
+    window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+    return false;
+}
+
 const pnlCtx = document.getElementById('pnlChart');
 if (pnlCtx) {
     const days = <?= json_encode($days) ?>;

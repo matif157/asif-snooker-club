@@ -38,6 +38,46 @@ class Customer extends BaseModel
         );
     }
 
+    /**
+     * Customers with a reachable phone number for WhatsApp broadcast.
+     */
+    public static function audience(string $audience = 'active', int $limit = 200): array
+    {
+        $where = "AND (phone IS NOT NULL AND phone != '')";
+        $params = [];
+
+        switch ($audience) {
+            case 'outstanding':
+                $where .= ' AND outstanding_balance > 0';
+                $order = 'outstanding_balance DESC';
+                break;
+            case 'recent':
+                $params[] = date('Y-m-d', strtotime('-30 days'));
+                $where .= ' AND last_visit_at >= ?';
+                $order = 'last_visit_at DESC';
+                break;
+            case 'member':
+                $where .= " AND category IN ('member','vip','regular')";
+                $order = 'last_visit_at DESC';
+                break;
+            default:
+                $order = 'last_visit_at DESC';
+                break;
+        }
+
+        $limit = min(500, max(1, $limit));
+        $params[] = $limit;
+
+        return Database::query(
+            "SELECT id, name, phone, outstanding_balance, total_spent, total_visits, last_visit_at
+             FROM customers
+             WHERE status = 'active' {$where}
+             ORDER BY {$order}
+             LIMIT ?",
+            $params
+        );
+    }
+
     public function sessions(): array
     {
         return Database::query(
