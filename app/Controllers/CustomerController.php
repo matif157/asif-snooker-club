@@ -104,6 +104,11 @@ class CustomerController extends Controller
             'email'    => $data['email'] ?? null,
             'category' => $data['category'] ?? 'regular',
             'notes'    => $data['notes'] ?? null,
+            'cf_1'     => $data['cf_1'] ?? null,
+            'cf_2'     => $data['cf_2'] ?? null,
+            'cf_3'     => $data['cf_3'] ?? null,
+            'cf_4'     => $data['cf_4'] ?? null,
+            'cf_5'     => $data['cf_5'] ?? null,
             'status'   => 'active',
         ]);
 
@@ -170,6 +175,11 @@ class CustomerController extends Controller
             'email'    => $data['email'] ?? $customer->email,
             'category' => $data['category'] ?? $customer->category,
             'notes'    => $data['notes'] ?? $customer->notes,
+            'cf_1'     => $data['cf_1'] ?? $customer->cf_1,
+            'cf_2'     => $data['cf_2'] ?? $customer->cf_2,
+            'cf_3'     => $data['cf_3'] ?? $customer->cf_3,
+            'cf_4'     => $data['cf_4'] ?? $customer->cf_4,
+            'cf_5'     => $data['cf_5'] ?? $customer->cf_5,
         ]);
 
         Response::redirect('/customers/' . $id);

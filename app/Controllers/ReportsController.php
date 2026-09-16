@@ -81,70 +81,133 @@ class ReportsController extends Controller
         }
 
         $days = min(90, max(7, (int) ($_GET['days'] ?? 30)));
+        $start = date('Y-m-d', strtotime("-{$days} days")) . ' 00:00:00';
 
-        // Revenue by hour of day (peak usage)
-        $hours = Database::query(
+        // ── KPI header ────────────────────────────────────────────────
+        $kpi = Database::fetchOne(
+            "SELECT
+                COALESCE((SELECT ROUND(SUM(amount),0) FROM payments WHERE paid_at >= ? AND status='paid'), 0) AS revenue,
+                COALESCE((SELECT COUNT(*) FROM sessions WHERE start_time >= ? AND status='completed'), 0) AS sessions,
+                COALESCE((SELECT ROUND(SUM(amount),0) FROM sessions WHERE end_time IS NOT NULL AND end_time <= NOW() AND payment_status != 'paid'), 0) AS outstanding",
+            [$start, $start]
+        );
+        $revenue     = (float) ($kpi['revenue'] ?? 0);
+        $sessionCount= (int) ($kpi['sessions'] ?? 0);
+        $outstanding = (float) ($kpi['outstanding'] ?? 0);
+
+        // ── Revenue by hour of day (peak usage, revenue + sessions) ───
+        $peak = Database::query(
             "SELECT HOUR(paid_at) AS hour, ROUND(SUM(amount), 0) AS revenue
-             FROM payments
-             WHERE paid_at >= ?
-               AND status = 'paid'
-             GROUP BY HOUR(paid_at)
-             ORDER BY hour ASC",
-            [date('Y-m-d', strtotime("-{$days} days")) . ' 00:00:00']
+             FROM payments WHERE paid_at >= ? AND status = 'paid'
+             GROUP BY HOUR(paid_at) ORDER BY hour ASC",
+            [$start]
+        );
+        $peakSessions = Database::query(
+            "SELECT HOUR(start_time) AS hour, COUNT(*) AS n
+             FROM sessions WHERE start_time >= ? GROUP BY HOUR(start_time)",
+            [$start]
         );
         $byHour = array_fill(0, 24, 0.0);
-        foreach ($hours as $r) {
+        foreach ($peak as $r) {
             $byHour[(int) $r['hour']] = (float) $r['revenue'];
         }
+        $byHourSessions = array_fill(0, 24, 0);
+        foreach ($peakSessions as $r) {
+            $byHourSessions[(int) $r['hour']] = (int) $r['n'];
+        }
 
-        // Table utilization (sessions per table)
+        // ── Table utilization (sessions, hours, revenue per table) ────
         $utilization = Database::query(
-            "SELECT t.number, t.name, t.status, COUNT(s.id) AS sessions,
+            "SELECT t.number, t.name, t.status,
+                    COUNT(s.id) AS sessions,
+                    COALESCE(ROUND(SUM(TIMESTAMPDIFF(MINUTE, s.start_time, COALESCE(s.end_time, NOW())) / 60), 1), 0) AS hours,
                     COALESCE(ROUND(SUM(s.amount), 0), 0) AS revenue
              FROM tables t
-             LEFT JOIN sessions s ON s.table_id = t.id
-                AND s.start_time >= ?
+             LEFT JOIN sessions s ON s.table_id = t.id AND s.start_time >= ? AND s.status != 'cancelled'
              GROUP BY t.id
              ORDER BY sessions DESC",
-            [date('Y-m-d', strtotime("-{$days} days")) . ' 00:00:00']
+            [$start]
         );
 
-        // Top customers
+        // ── Top customers ─────────────────────────────────────────────
         $topCustomers = Database::query(
             "SELECT c.id, c.name, c.category, c.phone,
                     COUNT(s.id) AS visits,
+                    COALESCE(ROUND(SUM(TIMESTAMPDIFF(MINUTE, s.start_time, COALESCE(s.end_time, NOW())) / 60), 1), 0) AS hours,
                     COALESCE(ROUND(SUM(s.amount), 0), 0) AS spent
              FROM customers c
-             JOIN sessions s ON s.customer_id = c.id
-                AND s.start_time >= ?
+             JOIN sessions s ON s.customer_id = c.id AND s.start_time >= ? AND s.status != 'cancelled'
              GROUP BY c.id
              ORDER BY spent DESC
              LIMIT 10",
-            [date('Y-m-d', strtotime("-{$days} days")) . ' 00:00:00']
-        );
-
-        // Revenue trend last N days (compact)
-        $start = date('Y-m-d', strtotime("-{$days} days")) . ' 00:00:00';
-        $trendBase = Database::query(
-            "SELECT DATE(paid_at) AS d, COALESCE(SUM(amount), 0) AS total
-             FROM payments
-             WHERE paid_at >= ? AND status = 'paid'
-             GROUP BY DATE(paid_at)",
             [$start]
         );
+
+        // ── Customers by category (all-time spend, period visits) ─────
+        $categoryBreakdown = Database::query(
+            "SELECT c.category,
+                    COUNT(DISTINCT c.id) AS customers,
+                    COALESCE(ROUND(SUM(s.amount), 0), 0) AS spent
+             FROM customers c
+             LEFT JOIN sessions s ON s.customer_id = c.id AND s.start_time >= ? AND s.status != 'cancelled'
+             GROUP BY c.category
+             ORDER BY spent DESC",
+            [$start]
+        );
+
+        // ── Bookings by status (period) ────────────────────────────────
+        $bookingsByStatus = Database::query(
+            "SELECT status, COUNT(*) AS n FROM bookings
+             WHERE created_at >= ? OR booking_date >= DATE(?) 
+             GROUP BY status ORDER BY n DESC",
+            [$start, $start]
+        );
+
+        // ── Daily revenue vs expenses + session count (chart) ─────────
+        $revDays = Database::query(
+            "SELECT DATE(paid_at) AS d, COALESCE(SUM(amount), 0) AS total
+             FROM payments WHERE paid_at >= ? AND status='paid'
+             GROUP BY DATE(paid_at)", [$start]
+        );
+        $expDays = Database::query(
+            "SELECT expense_date AS d, COALESCE(SUM(amount), 0) AS total
+             FROM expenses WHERE expense_date >= DATE(?) AND status='approved'
+             GROUP BY expense_date", [$start]
+        );
+        $sesDays = Database::query(
+            "SELECT DATE(start_time) AS d, COUNT(*) AS n
+             FROM sessions WHERE start_time >= ? AND status='completed'
+             GROUP BY DATE(start_time)", [$start]
+        );
+        $revByDay  = array_column($revDays, 'total', 'd');
+        $expByDay  = array_column($expDays, 'total', 'd');
+        $sesByDay  = array_column($sesDays, 'n', 'd');
+
         $trend = [];
-        $byDay = array_column($trendBase, 'total', 'd');
         for ($i = $days - 1; $i >= 0; $i--) {
             $d = date('Y-m-d', strtotime("-{$i} days"));
-            $trend[] = ['date' => $d, 'revenue' => (float) ($byDay[$d] ?? 0)];
+            $trend[] = [
+                'date'     => $d,
+                'revenue'  => (float) ($revByDay[$d] ?? 0),
+                'expenses' => (float) ($expByDay[$d] ?? 0),
+                'sessions' => (int) ($sesByDay[$d] ?? 0),
+            ];
         }
 
         $this->view('reports/analytics', [
-            'days'        => $days,
-            'byHour'      => $byHour,
-            'utilization' => $utilization,
-            'topCustomers'=> $topCustomers,
-            'trend'       => $trend,
+            'days'          => $days,
+            'revenue'       => $revenue,
+            'sessionCount'  => $sessionCount,
+            'avgSession'    => $sessionCount > 0 ? round($revenue / $sessionCount) : 0,
+            'outstanding'   => $outstanding,
+            'byHour'        => $byHour,
+            'byHourSessions'=> $byHourSessions,
+            'utilization'   => $utilization,
+            'topCustomers'  => $topCustomers,
+            'categoryBreakdown' => $categoryBreakdown,
+            'bookingsByStatus'  => $bookingsByStatus,
+            'trend'         => $trend,
+            'currency'      => (string) SettingsService::get('currency', 'Rs'),
         ]);
     }
 

@@ -95,6 +95,30 @@ $catLabel = match($customer['category'] ?? 'regular') {
         </div>
     </div>
 
+    <!-- Custom fields -->
+    <?php
+    $cfPairs = [];
+    for ($i = 1; $i <= 5; $i++) {
+        $label = (string) \App\Services\SettingsService::get("custom_field_{$i}_label", '');
+        $value = (string) ($customer['cf_' . $i] ?? '');
+        if (trim($label) !== '' && trim($value) !== '') {
+            $cfPairs[] = [$label, $value];
+        }
+    }
+    ?>
+    <?php if ($cfPairs !== []): ?>
+        <div class="card p-5">
+            <div class="flex flex-wrap gap-x-8 gap-y-4">
+                <?php foreach ($cfPairs as [$label, $value]): ?>
+                    <div>
+                        <p class="text-[11px] uppercase tracking-wider text-slate-500 font-medium mb-1"><?= e($label) ?></p>
+                        <p class="text-sm text-white font-medium"><?= e($value) ?></p>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    <?php endif; ?>
+
     <!-- Tabs -->
     <div class="card">
         <div class="flex border-b border-white/[0.06]">

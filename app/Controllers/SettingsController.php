@@ -204,6 +204,8 @@ class SettingsController extends Controller
             'accent_color',
             'reminder_enabled', 'reminder_horizon_min',
             'booking_reminder_template', 'outstanding_reminder_template',
+            'custom_field_1_label', 'custom_field_2_label', 'custom_field_3_label',
+            'custom_field_4_label', 'custom_field_5_label',
         ];
 
         foreach ($allowed as $key) {
@@ -217,7 +219,7 @@ class SettingsController extends Controller
                 continue;
             }
 
-            SettingsService::set($key, $value);
+            SettingsService::set($key, $value, str_starts_with($key, 'custom_field_') ? 'customers' : 'general');
         }
 
         AuditService::log('settings_updated', 'settings', null, null, $allowed);

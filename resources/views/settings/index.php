@@ -362,6 +362,31 @@
         </form>
     </div>
 
+    <!-- Customer custom fields -->
+    <div class="card p-5 sm:p-6" id="customer-fields">
+        <h2 class="text-lg font-semibold text-white mb-1">Customer Fields</h2>
+        <p class="text-sm text-slate-400 mb-5">
+            Add up to five custom fields on the customer profile (e.g. Member Since, Nickname, Sponsor).
+            Leave a label blank to hide that field. Values are filled per customer on their profile.
+        </p>
+        <form method="POST" action="<?= e(url('/settings')) ?>">
+            <?= csrf_field() ?>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <?php for ($i = 1; $i <= 5; $i++): ?>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">Field <?= $i ?> label</label>
+                        <input name="custom_field_<?= $i ?>_label" class="input" maxlength="60"
+                               placeholder="e.g. Member Since"
+                               value="<?= e($settings['custom_field_' . $i . '_label'] ?? '') ?>">
+                    </div>
+                <?php endfor; ?>
+            </div>
+            <div class="mt-5">
+                <button type="submit" class="btn-primary">Save Fields</button>
+            </div>
+        </form>
+    </div>
+
     <!-- Roles & permissions -->
     <?php
         $editableRoles = ['eco', 'counter', 'staff', 'auditor'];

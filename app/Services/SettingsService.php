@@ -33,7 +33,7 @@ class SettingsService
         return $all[$key] ?? $default;
     }
 
-    public static function set(string $key, mixed $value): void
+    public static function set(string $key, mixed $value, string $group = 'general'): void
     {
         $existing = Database::fetchOne(
             'SELECT id FROM settings WHERE `key` = ?',
@@ -47,8 +47,8 @@ class SettingsService
             );
         } else {
             Database::execute(
-                'INSERT INTO settings (`key`, value, `group`) VALUES (?, ?, "general")',
-                [$key, (string) $value]
+                'INSERT INTO settings (`key`, value, `group`) VALUES (?, ?, ?)',
+                [$key, (string) $value, $group]
             );
         }
 

@@ -108,6 +108,31 @@ $customer = $customer ?? null;
                           placeholder="Preferences, playing level, or other notes..."><?= e(old('notes', $customer['notes'] ?? '')) ?></textarea>
             </div>
 
+            <!-- Custom fields -->
+            <?php $fieldLabels = array_map(fn($i) => (string) \App\Services\SettingsService::get("custom_field_{$i}_label", ''), range(1, 5)); ?>
+            <?php if (array_filter($fieldLabels)): ?>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1.5">Extra Details</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <?php foreach ($fieldLabels as $i => $label): ?>
+                            <?php if (trim($label) === '') continue; ?>
+                            <div>
+                                <label class="block text-xs text-slate-500 mb-1.5"><?= e($label) ?></label>
+                                <input type="text" name="cf_<?= $i + 1 ?>"
+                                       value="<?= e(old("cf_" . ($i + 1), $customer['cf_' . ($i + 1)] ?? '')) ?>"
+                                       class="w-full bg-ink-850 border border-white/10 rounded-xl text-sm text-white px-4 py-2.5 placeholder-slate-500 focus:ring-2 focus:ring-emerald-500/50 focus:outline-none transition">
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <p class="text-xs text-slate-600 mt-2">Field labels are configured under Settings → Customer Fields.</p>
+                </div>
+            <?php else: ?>
+                <p class="text-xs text-slate-600">
+                    Custom fields available — enable them under
+                    <a href="<?= e(url('/settings#customer-fields')) ?>" class="text-emerald-400 hover:text-emerald-300">Settings → Customer Fields</a>.
+                </p>
+            <?php endif; ?>
+
             <!-- Actions -->
             <div class="flex items-center gap-3 pt-3">
                 <button type="submit" class="btn-primary">
