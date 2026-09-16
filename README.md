@@ -107,6 +107,16 @@ table, starting/ending a session, taking payment, and recording expenses. Every 
 shown on a real annotated screenshot with numbered red guide-boxes. Regenerate it with
 `docs/training-urdu/manual.html` (print to A4).
 
+## Owner / Sales Guide (Roman Urdu)
+
+`docs/roman-urdu-guide/CRM-Mukammal-Roman-Urdu-Guide.pdf` — a 31-page Roman Urdu guide
+covering **every module** (login, dashboard, tables, sessions, bookings, payments,
+customers, expenses, tournaments, all five reports, reminders, audit log, CCTV, portal,
+settings/backup), a **35-question FAQ** answering every question an owner or staff member
+may ask, the **10-question pain-discovery sales sequence**, and the business case
+(leakage, retention, owner control, ROI example). Source HTML + 21 fresh screenshots are in
+`docs/roman-urdu-guide/`; regenerate with the CDP `printToPDF` helper.
+
 Default seeded tables: 6 snooker tables (4 Standard @ Rs 300/hr + 2 VIP @ Rs 400/hr).
 Portal login: **Ali Raza / PIN `1234`**.
 
