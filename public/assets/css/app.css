@@ -1,5 +1,15 @@
 /* ASIF SNOOKER CLUB — Premium Dark Theme Styles */
 
+/* ── Ambient background ────────────────────────────────────────── */
+body {
+    background:
+        radial-gradient(90rem 42rem at 15% -12%, rgba(16,185,129,0.06), transparent 60%),
+        radial-gradient(80rem 38rem at 105% -8%, rgba(99,102,241,0.055), transparent 55%),
+        radial-gradient(60rem 30rem at 50% 110%, rgba(16,185,129,0.035), transparent 60%),
+        #0b0e14;
+    background-attachment: fixed;
+}
+
 /* ── Smooth animations ─────────────────────────────────────────── */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(8px); }
@@ -7,8 +17,25 @@
 }
 .fade-in { animation: fadeIn .28s ease-out both; }
 
+/* Staggered fade-in for sibling blocks (stat rows, grids) */
+.fade-in-stagger > * { animation: fadeIn .3s ease-out both; }
+.fade-in-stagger > *:nth-child(2)  { animation-delay: .04s; }
+.fade-in-stagger > *:nth-child(3)  { animation-delay: .08s; }
+.fade-in-stagger > *:nth-child(4)  { animation-delay: .12s; }
+.fade-in-stagger > *:nth-child(5)  { animation-delay: .16s; }
+.fade-in-stagger > *:nth-child(6)  { animation-delay: .20s; }
+.fade-in-stagger > *:nth-child(7)  { animation-delay: .24s; }
+.fade-in-stagger > *:nth-child(8)  { animation-delay: .28s; }
+.fade-in-stagger > *:nth-child(n+9){ animation-delay: .32s; }
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    .fade-in, .fade-in-stagger > * { animation: none; }
+}
+
 /* ── Sidebar nav items ──────────────────────────────────────────── */
 .nav-item {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -30,6 +57,18 @@
     font-weight: 600;
 }
 .nav-item.active svg { stroke: #34d399; }
+.nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: -3px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 58%;
+    border-radius: 999px;
+    background: linear-gradient(#34d399, #059669);
+    box-shadow: 0 0 12px rgba(16,185,129,0.55);
+}
 
 /* ── Stat cards ──────────────────────────────────────────────────── */
 .stat-card {
@@ -167,7 +206,55 @@
 .badge-violet   { background: rgba(139,92,246,0.14);  color: #a78bfa; }
 .badge-sky      { background: rgba(56,189,248,0.14);  color: #38bdf8; }
 .badge-slate    { background: rgba(100,116,139,0.14); color: #94a3b8; }
-.badge-rose     { background: rgba(244,63,94,0.14);   color: #fb7185; }
+
+/* ── Form controls (.input is the shared theme control) ─────────── */
+.input {
+    display: block;
+    width: 100%;
+    background: #171d2b;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 10px 16px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: #fff;
+    transition: border-color .15s, box-shadow .15s, background-color .15s;
+}
+.input::placeholder { color: #64748b; }
+.input:hover { border-color: rgba(255,255,255,0.18); }
+.input:focus {
+    outline: none;
+    border-color: rgba(16,185,129,0.6);
+    box-shadow: 0 0 0 3px rgba(16,185,129,0.16);
+    background: #131824;
+}
+.input:disabled { opacity: .55; cursor: not-allowed; }
+
+/* ── Focus visibility (accessible keyboard focus) ───────────────── */
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible,
+.btn-danger:focus-visible,
+.nav-item:focus-visible,
+button:focus-visible,
+a:focus-visible {
+    outline: 2px solid rgba(16,185,129,0.55);
+    outline-offset: 2px;
+}
+
+/* ── Empty states ───────────────────────────────────────────────── */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 40px 24px;
+    text-align: center;
+    border: 1px dashed rgba(255,255,255,0.1);
+    border-radius: 16px;
+    background: rgba(255,255,255,0.015);
+    color: #64748b;
+}
 
 /* ── Modal ───────────────────────────────────────────────────────── */
 .modal-overlay {
@@ -200,7 +287,8 @@
 
 /* ── Utility ─────────────────────────────────────────────────────── */
 .glass { background: rgba(19,24,36,0.66); backdrop-filter: blur(14px); }
-.card  { background: #131824; border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; }
+.card  { background: #131824; border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; transition: border-color .2s, box-shadow .2s; }
+.card:hover { border-color: rgba(255,255,255,0.11); box-shadow: 0 8px 30px rgba(0,0,0,0.18); }
 
 /* Timer flash */
 @keyframes timerPulse {

@@ -47,7 +47,7 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
     </div>
 
     <!-- ── Table Grid ────────────────────────────────────────────── -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3" id="tables-grid">
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 fade-in-stagger" id="tables-grid">
         <?php foreach ($tables as $table): ?>
             <?php
                 $status = $table['status'];

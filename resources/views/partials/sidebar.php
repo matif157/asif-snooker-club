@@ -103,6 +103,13 @@ $isActive = fn(string $path) => str_starts_with($uri, $path) || $uri === $path ?
         </a>
         <?php endif; ?>
 
+        <p class="px-3 mt-5 mb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500/70">Public</p>
+        <a href="/portal" class="nav-item <?php if (str_starts_with($uri, '/portal')) echo 'active'; ?>" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3l9 9-9 9M15 12H3"/></svg>
+            Member Portal
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 ml-auto opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+        </a>
+
     </nav>
 
     <!-- User -->

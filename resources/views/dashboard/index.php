@@ -28,7 +28,7 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
     </div>
 
     <!-- KPI Cards -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 fade-in-stagger">
         <!-- Revenue -->
         <div class="stat-card">
             <div class="flex items-center gap-3 mb-3">
