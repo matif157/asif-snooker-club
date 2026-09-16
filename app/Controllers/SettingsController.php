@@ -138,6 +138,53 @@ class SettingsController extends Controller
         exit;
     }
 
+    public function restore(): void
+    {
+        if (!user_can('settings.manage')) {
+            $this->error('You do not have permission to manage settings.', 403);
+        }
+
+        if (!Request::csrf()) {
+            Response::redirect('/settings#backups');
+        }
+
+        try {
+            BackupService::restore((string) Request::post('name', ''));
+            AuditService::log('backup_restored', 'backup', null, null, [
+                'name' => Request::post('name', ''),
+            ]);
+            flash('success', 'Database restored from backup.');
+        } catch (\Throwable $e) {
+            flash('error', $e->getMessage());
+        }
+
+        Response::redirect('/settings#backups');
+    }
+
+    public function restoreUpload(): void
+    {
+        if (!user_can('settings.manage')) {
+            $this->error('You do not have permission to manage settings.', 403);
+        }
+
+        if (!Request::csrf()) {
+            Response::redirect('/settings#backups');
+        }
+
+        try {
+            $path = BackupService::restoreUploaded(Request::file('backup') ?? []);
+            AuditService::log('backup_restored', 'backup', null, null, [
+                'name' => basename($path),
+                'uploaded' => true,
+            ]);
+            flash('success', 'Uploaded backup restored successfully.');
+        } catch (\Throwable $e) {
+            flash('error', $e->getMessage());
+        }
+
+        Response::redirect('/settings#backups');
+    }
+
     public function update(): void
     {
         if (!user_can('settings.manage')) {

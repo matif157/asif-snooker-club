@@ -240,7 +240,15 @@
                             <td class="text-slate-400"><?= number_format(round($b['size'] / 1024)) ?> KB</td>
                             <td class="text-slate-400"><?= e(date('M j, g:i A', $b['time'])) ?></td>
                             <td class="text-right">
-                                <a href="<?= e(url('/settings/backups/' . $b['name'])) ?>" class="text-xs text-emerald-400 hover:text-emerald-300 font-medium">Download</a>
+                                <div class="flex items-center justify-end gap-3">
+                                    <form method="POST" action="<?= e(url('/settings/restore')) ?>" class="inline"
+                                          onsubmit="return confirm('Restore the ENTIRE database from <?= e(addslashes($b['name'])) ?>? Current data will be replaced (a safety backup is taken first).');">
+                                        <?= csrf_field() ?>
+                                        <input type="hidden" name="name" value="<?= e($b['name']) ?>">
+                                        <button type="submit" class="text-xs text-amber-400 hover:text-amber-300 font-medium">Restore</button>
+                                    </form>
+                                    <a href="<?= e(url('/settings/backups/' . $b['name'])) ?>" class="text-xs text-emerald-400 hover:text-emerald-300 font-medium">Download</a>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -248,9 +256,16 @@
                 </table>
             </div>
         <?php endif; ?>
-    </div>
 
-    <!-- Staff management -->
+        <form method="POST" action="<?= e(url('/settings/restore/upload')) ?>" enctype="multipart/form-data"
+              class="mt-5 flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-dashed border-white/10 bg-white/[0.02] p-4"
+              onsubmit="return confirm('Restore the ENTIRE database from the uploaded file? Current data will be replaced (a safety backup is taken first).');">
+            <?= csrf_field() ?>
+            <label class="text-xs text-slate-400 shrink-0">Restore from upload:</label>
+            <input type="file" name="backup" accept=".sql" class="text-xs text-slate-300 file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-white/5 file:text-emerald-300 file:text-xs file:cursor-pointer">
+            <button type="submit" class="btn-secondary text-xs !py-1.5 shrink-0">Restore Upload</button>
+        </form>
+    </div>
     <div class="card p-5 sm:p-6">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
             <h2 class="text-lg font-semibold text-white">Staff Accounts</h2>

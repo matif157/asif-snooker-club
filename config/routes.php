@@ -12,10 +12,15 @@ use App\Controllers\PortalController;
 use App\Controllers\ReminderController;
 use App\Controllers\ReportsController;
 use App\Controllers\SessionController;
+use App\Controllers\SetupController;
 use App\Controllers\SettingsController;
 use App\Controllers\TableController;
 
 /** @var App\Core\Router $router */
+
+// ── Installer wizard (auth-exempt) ─────────────────────────────────────
+$router->get('/install', [SetupController::class, 'index']);
+$router->post('/install', [SetupController::class, 'install']);
 
 // ── Auth routes ────────────────────────────────────────────────────────
 $router->get('/login', [AuthController::class, 'showLogin']);
@@ -88,6 +93,8 @@ $router->post('/settings', [SettingsController::class, 'update']);
 $router->post('/settings/roles', [SettingsController::class, 'updateRoles']);
 $router->post('/settings/backup', [SettingsController::class, 'backup']);
 $router->get('/settings/backups/{name}', [SettingsController::class, 'downloadBackup']);
+$router->post('/settings/restore', [SettingsController::class, 'restore']);
+$router->post('/settings/restore/upload', [SettingsController::class, 'restoreUpload']);
 $router->post('/settings/users/create', [SettingsController::class, 'createUser']);
 $router->post('/settings/users/{id}/update', [SettingsController::class, 'updateUser']);
 

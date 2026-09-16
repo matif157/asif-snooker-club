@@ -4,7 +4,7 @@
 -- ============================================================
 
 ALTER TABLE users
-    ADD COLUMN theme ENUM('dark','light','auto') NOT NULL DEFAULT 'dark'
+    ADD COLUMN IF NOT EXISTS theme ENUM('dark','light','auto') NOT NULL DEFAULT 'dark'
     AFTER status;
 
 INSERT INTO settings (`key`, value, `group`)

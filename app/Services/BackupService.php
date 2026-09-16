@@ -25,7 +25,7 @@ class BackupService
     {
         $pdo = Database::connection();
 
-        $filename = 'backup-' . date('Ymd-His') . '.sql';
+        $filename = 'backup-' . date('Ymd-His') . '-' . substr(bin2hex(random_bytes(3)), 0, 6) . '.sql';
         $path     = self::backupDir() . '/' . $filename;
         $fp       = fopen($path, 'w');
 
@@ -81,5 +81,122 @@ class BackupService
         }
         usort($out, fn($a, $b) => $b['time'] <=> $a['time']);
         return $out;
+    }
+
+    /**
+     * Import a backup .sql file back into the database.
+     * Takes a snapshot of the current data first in case a rollback is needed.
+     */
+    public static function restore(string $name, bool $safetyBackup = true): string
+    {
+        $safe = basename($name);
+        $path = self::backupDir() . '/' . $safe;
+
+        if (!preg_match('/^backup-\d{8}-\d{6}(-[0-9a-f]{6})?\.sql$/', $safe) || !file_exists($path)) {
+            throw new \RuntimeException('Backup not found or invalid name');
+        }
+
+        if ($safetyBackup) {
+            self::create(); // pre-restore snapshot
+        }
+
+        $pdo = \App\Core\Database::connection();
+        $sql = file_get_contents($path);
+        $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
+        try {
+            foreach ($pdo->query('SHOW TABLES')->fetchAll(\PDO::FETCH_COLUMN) as $table) {
+                $pdo->exec('DROP TABLE IF EXISTS `' . $table . '`');
+            }
+            foreach (self::splitStatements($sql) as $statement) {
+                $pdo->exec($statement);
+            }
+        } catch (\Throwable $e) {
+            throw new \RuntimeException('Restore failed (a safety backup of the previous state is saved in backups/): ' . $e->getMessage());
+        } finally {
+            $pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
+        }
+
+        return $path;
+    }
+
+    /**
+     * Accept an uploaded SQL dump (validated) and restore it.
+     */
+    public static function restoreUploaded(array $file): string
+    {
+        if (empty($file['tmp_name']) || ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+            throw new \RuntimeException('No file uploaded');
+        }
+        if (($file['size'] ?? 0) > 20 * 1024 * 1024) {
+            throw new \RuntimeException('Backup file must be under 20 MB');
+        }
+        if (strtolower(pathinfo($file['name'], PATHINFO_EXTENSION)) !== 'sql') {
+            throw new \RuntimeException('Only .sql dump files are accepted');
+        }
+
+        $target = self::backupDir() . '/backup-' . date('Ymd-His') . '-' . substr(bin2hex(random_bytes(3)), 0, 6) . '.sql';
+        if (!move_uploaded_file($file['tmp_name'], $target)) {
+            throw new \RuntimeException('Could not store the uploaded file');
+        }
+
+        return self::restore(basename($target));
+    }
+
+    /**
+     * Split SQL into individual statements, respecting single-quoted strings
+     * (backup dumps can contain quotes, semicolons and backslash escapes).
+     */
+    public static function splitStatements(string $sql): array
+    {
+        $statements = [];
+        $current    = '';
+        $len        = strlen($sql);
+        $inString   = false;
+
+        for ($i = 0; $i < $len; $i++) {
+            $ch = $sql[$i];
+
+            if ($inString) {
+                $current .= $ch;
+                if ($ch === '\\') {
+                    if ($i + 1 < $len) {
+                        $current .= $sql[++$i];
+                    }
+                    continue;
+                }
+                if ($ch === "'") {
+                    if ($i + 1 < $len && $sql[$i + 1] === "'") {
+                        $current .= $sql[++$i];
+                        continue;
+                    }
+                    $inString = false;
+                }
+                continue;
+            }
+
+            if ($ch === "'") {
+                $inString = true;
+                $current .= $ch;
+                continue;
+            }
+
+            if ($ch === ';') {
+                $trimmed = trim($current);
+                if ($trimmed !== '') {
+                    $statements[] = $trimmed;
+                }
+                $current = '';
+                continue;
+            }
+
+            $current .= $ch;
+        }
+
+        $trimmed = trim($current);
+        if ($trimmed !== '') {
+            $statements[] = $trimmed;
+        }
+
+        return $statements;
     }
 }

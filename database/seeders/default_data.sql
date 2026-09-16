@@ -75,7 +75,8 @@ INSERT INTO settings (`key`, value, `group`) VALUES
 ('reminder_enabled',              '1', 'notifications'),
 ('reminder_horizon_min',          '120', 'notifications'),
 ('booking_reminder_template',     'Hi {name}! Just a friendly reminder: your snooker booking at {club} is today at {time} on Table {table}. See you there!', 'notifications'),
-('outstanding_reminder_template', 'Hi {name}! A gentle reminder from {club} that you have an outstanding balance of {currency} {amount}. Please settle at your convenience. Thank you!', 'notifications');
+('outstanding_reminder_template', 'Hi {name}! A gentle reminder from {club} that you have an outstanding balance of {currency} {amount}. Please settle at your convenience. Thank you!', 'notifications')
+ON DUPLICATE KEY UPDATE `value` = VALUES(`value`), `group` = VALUES(`group`);
 
 -- Default tables (club starts clean; comment out if you prefer to add via UI)
 INSERT INTO tables (number, name, type, hourly_rate, min_charge, status, sort_order) VALUES
@@ -84,4 +85,5 @@ INSERT INTO tables (number, name, type, hourly_rate, min_charge, status, sort_or
 ('03', 'Table 03', 'Standard', 300, 100, 'available', 3),
 ('04', 'Table 04', 'Standard', 300, 100, 'available', 4),
 ('05', 'Table 05', 'VIP',      400, 150, 'available', 5),
-('06', 'Table 06', 'VIP',      400, 150, 'available', 6);
+('06', 'Table 06', 'VIP',      400, 150, 'available', 6)
+ON DUPLICATE KEY UPDATE `name` = VALUES(`name`), `type` = VALUES(`type`);
