@@ -79,7 +79,31 @@ function config(string $key, mixed $default = null): mixed
 
 function url(string $path = ''): string
 {
-    return rtrim(config('app.url'), '/') . '/' . ltrim($path, '/');
+    static $base = null;
+
+    if ($base === null) {
+        $configured = rtrim((string) config('app.url'), '/');
+        $configuredHost = (string) parse_url($configured, PHP_URL_HOST);
+
+        // Tunnels (ngrok, reverse proxies) forward the real public host
+        // while the server sees a different one — derive the base from the
+        // forwarded host so generated links work for the visitor too.
+        $host = $_SERVER['HTTP_X_FORWARDED_HOST'] ?? $_SERVER['HTTP_HOST'] ?? '';
+        $host = trim(explode(',', (string) $host)[0]);
+        $host = preg_replace('/[^a-zA-Z0-9.:\[\]-]/', '', $host);
+
+        if ($host !== '' && strcasecmp($host, $configuredHost) !== 0) {
+            $scheme = (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
+                || (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+                ? 'https'
+                : 'http';
+            $configured = $scheme . '://' . $host;
+        }
+
+        $base = $configured;
+    }
+
+    return $base . '/' . ltrim($path, '/');
 }
 
 function redirect(string $path, int $status = 302): void

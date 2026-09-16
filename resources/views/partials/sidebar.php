@@ -71,6 +71,13 @@ $isActive = fn(string $path) => str_starts_with($uri, $path) || $uri === $path ?
             Expenses
         </a>
 
+        <?php if (user_can('tournaments.view') || user_can('tournaments.manage')): ?>
+        <a href="/tournaments" class="nav-item <?php if (str_starts_with($uri, '/tournaments')) echo 'active'; ?>">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9H4.5a2.5 2.5 0 010-5H6M18 9h1.5a2.5 2.5 0 000-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22m6-7.34V17c0 .55.47.98.97 1.21 1.18.54 1.53 2.03 1.53 3.79"/></svg>
+            Tournaments
+        </a>
+        <?php endif; ?>
+
         <?php if (user_can('reports.view') || user_can('finance.view')): ?>
         <a href="/reports/daily" class="nav-item <?php if (str_starts_with($uri, '/reports/daily')) echo 'active'; ?>">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>

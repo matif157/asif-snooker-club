@@ -21,6 +21,8 @@ D Ground, Faisalabad. Digitizes the handwritten daily register into a real-time 
 - **Session e-invoices** — printable session invoices (invoice no., billed-to, line items, paid/balance-due)
 - **Payment receipts** — print-ready receipts with amount in words
 - **Booking calendar** — monthly grid with per-table chips and prev/next navigation
+- **Tournament manager** — single-elimination knockout tournaments: entry fees, prizes and best-of format; player registration from the customers directory (or walk-ins), seeded bracket generation with automatic byes, results recorded per match with auto-advancing rounds and a highlighted champion
+- **Tunnel-friendly URLs** — generated links/redirects derive from the forwarded public host (`X-Forwarded-Host` + `X-Forwarded-Proto`), so the app works cleanly behind ngrok or any reverse proxy
 - **Follow-up & Recovery center** — outstanding customers + missed bookings with one-tap WhatsApp reminders
 - **Audit log** — full action history (expense approvals, payments, sessions, etc.) with filters
 - **WhatsApp Broadcast center** — audience-targeted (active / outstanding / recent / VIP) message previews with personalized links & copy-all

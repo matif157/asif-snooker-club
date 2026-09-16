@@ -16,6 +16,7 @@ use App\Controllers\SessionController;
 use App\Controllers\SetupController;
 use App\Controllers\SettingsController;
 use App\Controllers\TableController;
+use App\Controllers\TournamentController;
 
 /** @var App\Core\Router $router */
 
@@ -81,6 +82,18 @@ $router->get('/expenses', [ExpenseController::class, 'index']);
 $router->get('/expenses/export', [ExpenseController::class, 'export']);
 $router->post('/expenses', [ExpenseController::class, 'store']);
 $router->post('/expenses/{id}/status', [ExpenseController::class, 'setStatus']);
+
+// Tournaments
+$router->get('/tournaments', [TournamentController::class, 'index']);
+$router->get('/tournaments/create', [TournamentController::class, 'create']);
+$router->post('/tournaments', [TournamentController::class, 'store']);
+$router->get('/tournaments/{id}', [TournamentController::class, 'show']);
+$router->post('/tournaments/{id}/status', [TournamentController::class, 'updateStatus']);
+$router->post('/tournaments/{id}/players', [TournamentController::class, 'register']);
+$router->post('/tournaments/{id}/players/{playerId}/withdraw', [TournamentController::class, 'withdraw']);
+$router->post('/tournaments/{id}/bracket', [TournamentController::class, 'bracket']);
+$router->post('/tournaments/{id}/matches/{matchId}/score', [TournamentController::class, 'score']);
+$router->post('/tournaments/{id}/delete', [TournamentController::class, 'destroy']);
 
 // Reports
 $router->get('/reports/daily', [ReportsController::class, 'daily']);
