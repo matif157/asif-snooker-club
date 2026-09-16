@@ -90,8 +90,17 @@ herd stop && herd start
 
 ## Default Login
 
-Create the owner account during install (`php database/install.php`). Default seeded tables:
-6 snooker tables (4 Standard @ Rs 300/hr + 2 VIP @ Rs 400/hr).
+Create the owner account during install (`php database/install.php`). Demo accounts on the dev database:
+
+| Role    | Email                | Password      |
+|---------|----------------------|---------------|
+| Owner   | `admin@asifclub.pk`  | `Owner@2026`  |
+| Admin   | `dev@asifclub.pk`    | `Dev@2026`    |
+| Counter | `counter@asifclub.pk`| `Counter@2026`|
+| Counter | `shan@gmail.com`     | `Counter@2026`|
+
+Default seeded tables: 6 snooker tables (4 Standard @ Rs 300/hr + 2 VIP @ Rs 400/hr).
+Portal login: **Ali Raza / PIN `1234`**.
 
 ## Project Structure
 
