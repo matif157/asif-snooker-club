@@ -214,6 +214,9 @@ Recommended: Shared hosting (Hostinger/Bluehost etc.) with PHP 8.2 & MySQL.
 Upload everything except `.env`, run `php database/install.php` via SSH or the installer,
 point the domain at `public/`.
 
+> Full step-by-step guide (release build, Apache/Nginx, TLS, cron, checklist,
+> troubleshooting): see **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
+
 ## Security & Hardening
 
 - **Session cookies** are `HttpOnly`, `SameSite=Lax` and flagged `Secure` over HTTPS
