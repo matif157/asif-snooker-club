@@ -18,6 +18,7 @@ define('ROOT_PATH', dirname(__DIR__));
 require ROOT_PATH . '/vendor/autoload.php';
 
 load_env(ROOT_PATH . '/.env');
+// just a backup file 
 
 $db = require ROOT_PATH . '/config/database.php';
 if (!$db['database'] || $db['database'] === 'asif_snooker_club') {

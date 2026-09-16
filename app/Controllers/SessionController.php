@@ -177,6 +177,16 @@ class SessionController extends Controller
             Response::error('Table is already occupied');
         }
 
+        // Hard guard: never allow two live sessions on the same table (protects
+        // against stale table.status or upsell/hold edge cases).
+        $live = Database::query(
+            'SELECT COUNT(*) AS c FROM sessions WHERE table_id = ? AND status = ?',
+            [(int) $table->id, 'active']
+        )[0]['c'] ?? 0;
+        if ((int) $live > 0) {
+            Response::error('Table already has a live session');
+        }
+
         if (in_array($table->status, ['maintenance', 'blocked', 'offline'])) {
             Response::error('Table is not available');
         }

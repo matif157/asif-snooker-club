@@ -9,7 +9,7 @@ $reservedCount = count(array_filter($tables, fn($t) => $t['status'] === 'reserve
 $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'maintenance'));
 ?>
 
-<div class="space-y-6 fade-in" id="tables-root" x-data="tableCommandCenter()" x-init="window.__tablesComp = this">
+<div class="space-y-6 fade-in" id="tables-root" x-data="tableCommandCenter()">
 
     <!-- Page Header -->
     <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
@@ -461,6 +461,8 @@ function tableCommandCenter() {
         endSubmitting: false,
 
         init() {
+            // Alpine binds `this` to the component here (unlike x-init, where it is the global scope).
+            window.__tablesComp = this;
             if (window.location.search.includes('start_session=1')) {
                 this.showStartModal = true;
             }
@@ -542,15 +544,22 @@ function tableCommandCenter() {
 // Global helper for inline onclick handlers — resolves the Table Command
 // Center Alpine component reliably (never the layout/header scopes).
 function tablesCommandComponent() {
-    if (window.__tablesComp && window.__tablesComp.openStartModal) return window.__tablesComp;
     if (window.Alpine) {
-        const root = document.getElementById('tables-root');
-        if (root) {
-            try {
+        try {
+            const root = document.getElementById('tables-root');
+            if (root) {
                 const comp = Alpine.$data(root);
-                if (comp && comp.openStartModal) return comp;
-            } catch (e) { /* fall through */ }
-        }
+                if (comp && comp !== window && typeof comp.openStartModal === 'function' && typeof comp.endSession === 'function') {
+                    return comp;
+                }
+            }
+        } catch (e) { /* fall through */ }
+    }
+    if (window.__tablesComp && window.__tablesComp !== window
+        && typeof window.__tablesComp.openStartModal === 'function'
+        && typeof window.__tablesComp.endSession === 'function'
+        && window.__tablesComp.endSession !== window.endSession) {
+        return window.__tablesComp;
     }
     return null;
 }

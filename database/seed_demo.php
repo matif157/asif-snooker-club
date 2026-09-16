@@ -114,6 +114,15 @@ foreach ($sessions as [$table, $customer, $players, $startOff, $endOff, $rateTyp
     $sessionIds[] = (int) $db->lastInsertId();
 }
 
+// Keep tables.status in sync so the floor view renders the two seeded live
+// sessions as Occupied (the session alone no longer implies a busy table).
+$occStmt = $db->prepare('UPDATE tables SET status = ? WHERE id = ?');
+foreach ($sessions as [$table, , , , $endOff]) {
+    if ($endOff === null) {
+        $occStmt->execute(['occupied', $table]);
+    }
+}
+
 // ---------------------------------------------------------------
 // 4) Payments
 // ---------------------------------------------------------------
