@@ -12,8 +12,10 @@ D Ground, Faisalabad. Digitizes the handwritten daily register into a real-time 
 - **Payments** — Cash, **JazzCash**, Bank Transfer, Card; outstanding balance tracking
 - **Expenses & Finance** — categorized expenses (Electricity, Labour, Rent, etc.) with approval tracking
 - **Daily Closing** — collected by method, sessions billed, expenses, outstanding, with print & WhatsApp share
-- **Analytics** — revenue by hour (peak staffing), table utilization, top customers, daily trend (7–90 day ranges)
+- **Analytics** — revenue by hour (peak staffing), table utilization, top customers, daily revenue vs expenses, sessions-by-hour, category & booking-status breakdowns (7–90 day ranges)
 - **Sessions history** — filterable by date range, table, payment status
+- **WhatsApp reminders** — scheduled booking & outstanding-balance reminders written to `/reminders` center + auto-batched by hourly cron (`database/remind.php --run`), zero API cost via dedicated wa.me links
+- **Customer custom fields** — up to 5 configurable profile fields (labels + per-customer values, Settings → Customer Fields)
 - **Peak & Night rate automation** — configurable peak/off-peak/night time bands; sessions started in a peak band auto-bill at the peak multiplier, night band when your table has a `night_rate`
 - **Session e-invoices** — printable session invoices (invoice no., billed-to, line items, paid/balance-due)
 - **Payment receipts** — print-ready receipts with amount in words
@@ -26,7 +28,8 @@ D Ground, Faisalabad. Digitizes the handwritten daily register into a real-time 
 - **Automated backups** — CLI `database/backup.php` + in-app backup manager (download/restore-ready SQL dumps, keeps last 20)
 - **Notifications bell** — live alerts for full tables, today's bookings, unpaid sessions
 - **Real-time updates** — live dashboard chart (real data), lightweight AJAX polling (shared-hosting friendly) + optional SSE endpoints
-- **RBAC** — Owner, Admin, ECO, Counter, Staff, Auditor roles with granular permissions, editable per-role permission matrix (Owner/Admin locked full-access)
+- **RBAC** — Owner, Admin, ECO, Counter, Staff, Auditor roles with granular permissions, editable per-role permission matrix (Owner/Admin locked full-access) including CCTV view/manage
+- **CCTV live grid** — `/cctv` browser-based live camera wall fed by a local media server (go2rtc/mediamtx); camera registry with name, location, RTSP source and stream names, enabled/disabled per camera
 - **Visual customizer** — club accent colour (swatches + custom picker) flows through buttons, badges, nav, charts; per-user **Dark / Light / Auto** theme persisted server-side
 - **Premium dark UI** — responsive sidebar, notifications bell, snooker-branded login (D Ground, Faisalabad)
 
@@ -125,8 +128,8 @@ Configured under **Settings → Pricing & Peak Hours**:
 ## Customization — Roles & Themes
 
 **Roles & Permissions** — Settings → Roles & Permissions. Every non-superuser role
-(ECO, Counter, Staff, Auditor) has a full checkbox matrix over all 18 permissions
-(e.g. `tables.manage`, `reports.view`, `settings.manage`). Save is transactional and
+(ECO, Counter, Staff, Auditor) has a full checkbox matrix over all 20 permissions
+(e.g. `tables.manage`, `reports.view`, `settings.manage`, `cctv.view`). Save is transactional and
 audited; **Owner & Admin always bypass the matrix (full access)** so you can't lock
 yourself out. The current user's own `settings.manage` is force-kept.
 
@@ -150,6 +153,28 @@ The CRM provides:
 - **WhatsApp** button → opens `wa.me` chat with a pre-filled greeting from club settings
 
 No external SMS/voice API or monthly cost required.
+
+## CCTV / Live Camera Wall
+
+The `/cctv` page shows your camera feeds as a no-plugin browser grid. It does **not**
+process video itself — a tiny local media server restreams your IP cameras as HTTP; the CRM
+just displays them.
+
+Setup:
+
+1. Install [go2rtc](https://github.com/AlexxIT/go2rtc) (or [mediamtx](https://github.com/bluenviron/mediamtx)) on a box that can reach the cameras.
+2. Define each camera in its config, e.g.:
+
+   ```yaml
+   streams:
+     table01: rtsp://admin:pass@192.168.1.20:554/stream1
+     tables_all: rtsp://admin:pass@192.168.1.21:554/stream1
+   ```
+
+3. In the CRM: **Add Camera** with the same **Stream name** (`table01`, …), optionally the RTSP source, and a friendly name + location. Enabled cameras appear in the grid as live `<img>` tiles; missing/offline streams show a "No signal" placeholder.
+4. If go2rtc runs on another machine, set its address in **Settings → CCTV** (default `http://127.0.0.1:1984`).
+
+Roles with `cctv.view` see the wall; `cctv.manage` (Owner/Admin) can add/remove cameras.
 
 ## Deployment
 

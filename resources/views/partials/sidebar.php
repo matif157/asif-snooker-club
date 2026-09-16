@@ -98,6 +98,14 @@ $isActive = fn(string $path) => str_starts_with($uri, $path) || $uri === $path ?
         </a>
         <?php endif; ?>
 
+        <?php if (user_can('cctv.view') || user_can('cctv.manage')): ?>
+        <p class="px-3 mt-5 mb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500/70">Monitoring</p>
+        <a href="/cctv" class="nav-item <?php if (str_starts_with($uri, '/cctv')) echo 'active'; ?>">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            CCTV
+        </a>
+        <?php endif; ?>
+
         <?php if (user_can('settings.manage')): ?>
         <p class="px-3 mt-5 mb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500/70">System</p>
         <a href="/settings" class="nav-item <?php if (str_starts_with($uri, '/settings')) echo 'active'; ?>">

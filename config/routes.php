@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Controllers\AuthController;
 use App\Controllers\BookingController;
+use App\Controllers\CameraController;
 use App\Controllers\CustomerController;
 use App\Controllers\DashboardController;
 use App\Controllers\ExpenseController;
@@ -82,6 +83,9 @@ $router->get('/reports/pnl', [ReportsController::class, 'pnl']);
 $router->get('/reports/analytics', [ReportsController::class, 'analytics']);
 $router->get('/reports/followup', [ReportsController::class, 'followup']);
 $router->get('/reports/audit', [ReportsController::class, 'audit']);
+$router->get('/cctv', [CameraController::class, 'index']);
+$router->post('/cctv', [CameraController::class, 'store']);
+$router->post('/cctv/{id}/delete', [CameraController::class, 'destroy']);
 $router->get('/reminders', [ReminderController::class, 'index']);
 
 // Public customer portal

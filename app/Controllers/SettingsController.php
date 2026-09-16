@@ -206,6 +206,7 @@ class SettingsController extends Controller
             'booking_reminder_template', 'outstanding_reminder_template',
             'custom_field_1_label', 'custom_field_2_label', 'custom_field_3_label',
             'custom_field_4_label', 'custom_field_5_label',
+            'cctv_server_url',
         ];
 
         foreach ($allowed as $key) {
@@ -219,7 +220,7 @@ class SettingsController extends Controller
                 continue;
             }
 
-            SettingsService::set($key, $value, str_starts_with($key, 'custom_field_') ? 'customers' : 'general');
+            SettingsService::set($key, $value, in_array($key, ['custom_field_1_label','custom_field_2_label','custom_field_3_label','custom_field_4_label','custom_field_5_label'], true) ? 'customers' : (($key === 'cctv_server_url') ? 'cctv' : 'general'));
         }
 
         AuditService::log('settings_updated', 'settings', null, null, $allowed);

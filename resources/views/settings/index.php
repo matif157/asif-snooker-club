@@ -387,6 +387,28 @@
         </form>
     </div>
 
+    <!-- CCTV -->
+    <div class="card p-5 sm:p-6" id="cctv">
+        <h2 class="text-lg font-semibold text-white mb-1">CCTV</h2>
+        <p class="text-sm text-slate-400 mb-5">
+            Address of the local media server powering the
+            <a href="<?= e(url('/cctv')) ?>" class="text-emerald-400 hover:underline">live camera grid</a>.
+        </p>
+        <form method="POST" action="<?= e(url('/settings')) ?>">
+            <?= csrf_field() ?>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1.5">Media server URL</label>
+                    <input name="cctv_server_url" class="input" placeholder="http://127.0.0.1:1984"
+                           value="<?= e($settings['cctv_server_url'] ?? 'http://127.0.0.1:1984') ?>">
+                </div>
+            </div>
+            <div class="mt-5">
+                <button type="submit" class="btn-primary">Save CCTV</button>
+            </div>
+        </form>
+    </div>
+
     <!-- Roles & permissions -->
     <?php
         $editableRoles = ['eco', 'counter', 'staff', 'auditor'];
