@@ -171,12 +171,26 @@ foreach ($sessions as $s) {
                                data-min-charge="<?= (float) ($sess['table_min_charge'] ?? 100) ?>">
                                 Rs <?= number_format($estInit) ?>
                             </p>
+                            <?php if ((float) ($sess['extra_charges'] ?? 0) > 0): ?>
+                                <p class="text-[11px] text-amber-400 font-medium est-extras">Extras: Rs <?= number_format((float) $sess['extra_charges']) ?></p>
+                            <?php else: ?>
+                                <p class="text-[11px] text-slate-600 est-extras hidden"></p>
+                            <?php endif; ?>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <a href="/payments?session_id=<?= (int) $sess['id'] ?>" class="btn-primary !py-2 !px-4 !text-xs">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                                Pay
-                            </a>
+                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                            <div class="flex items-center gap-2">
+                                <a href="/payments?session_id=<?= (int) $sess['id'] ?>" class="btn-primary !py-2 !px-4 !text-xs">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                    Pay
+                                </a>
+                                <?php if (user_can('sessions.manage')): ?>
+                                    <button class="btn-secondary !py-2 !px-4 !text-xs"
+                                            @click="openChargeModal(<?= (int) $sess['id'] ?>, '<?= e($sess['table_number']) ?>', <?= (float) ($sess['extra_charges'] ?? 0) ?>)">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                        Extra
+                                    </button>
+                                <?php endif; ?>
+                            </div>
                             <button class="btn-danger !py-2 !px-4 !text-xs"
                                     @click="openEndModal(<?= (int) $sess['id'] ?>, <?= (int) $sess['table_id'] ?>, '<?= e($sess['table_number']) ?>')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg>
@@ -254,6 +268,61 @@ foreach ($sessions as $s) {
         </div>
     </div>
 
+    <!-- ── Add Extra Charge Modal ─────────────────────────────── -->
+    <div x-show="showChargeModal" x-cloak
+         class="modal-overlay"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         @click.self="showChargeModal = false"
+         @keydown.escape.window="showChargeModal = false">
+
+        <div class="modal-card max-w-md"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+             @click.stop>
+
+            <!-- Header -->
+            <div class="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
+                <h3 class="text-base font-semibold text-white">Add Extra Charge</h3>
+                <button @click="showChargeModal = false" class="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-4">
+                <p class="text-sm text-slate-400">Add an extra billable item to Table <span class="text-white font-semibold" x-text="'#' + chargeTableNumber"></span> (e.g. refreshments, damage, chalk).</p>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1.5">Amount (Rs) *</label>
+                    <input type="number" x-model="chargeAmount" step="0.01" min="0" placeholder="0.00"
+                           class="w-full bg-ink-800/80 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500/50 transition">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1.5">Label</label>
+                    <input type="text" x-model="chargeLabel" maxlength="120" placeholder="e.g. Refreshments"
+                           class="w-full bg-ink-800/80 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500/50 transition">
+                </div>
+
+                <div class="flex items-center gap-3 pt-2">
+                    <button @click="showChargeModal = false" class="btn-secondary flex-1 justify-center">Cancel</button>
+                    <button @click="submitExtraCharge()"
+                            class="btn-primary flex-1 justify-center"
+                            :disabled="chargeSubmitting"
+                            :class="{ 'opacity-50 cursor-not-allowed': chargeSubmitting }">
+                        <svg x-show="chargeSubmitting" class="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                        <span x-text="chargeSubmitting ? 'Adding...' : 'Add Charge'"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <!-- Alpine.js -->
@@ -268,11 +337,56 @@ function activeSessionsPage() {
         endTableNumber: '',
         endSubmitting: false,
 
+        showChargeModal: false,
+        chargeSessionId: null,
+        chargeTableNumber: '',
+        chargeAmount: '',
+        chargeLabel: '',
+        chargeSubmitting: false,
+
         openEndModal(sessionId, tableId, tableNumber) {
             this.endSessionId = sessionId;
             this.endTableId = tableId;
             this.endTableNumber = tableNumber;
             this.showEndModal = true;
+        },
+
+        openChargeModal(sessionId, tableNumber, extras) {
+            this.chargeSessionId = sessionId;
+            this.chargeTableNumber = tableNumber;
+            this.chargeAmount = '';
+            this.chargeLabel = '';
+            this.showChargeModal = true;
+        },
+
+        async submitExtraCharge() {
+            const amount = parseFloat(this.chargeAmount);
+            if (!amount || amount <= 0) { alert('Enter a valid charge amount.'); return; }
+            this.chargeSubmitting = true;
+            try {
+                const result = await apiPost('/api/sessions/' + this.chargeSessionId + '/charge', {
+                    amount: amount,
+                    label: this.chargeLabel
+                });
+                if (result.success) {
+                    const card = document.querySelector('[data-session-id="' + this.chargeSessionId + '"]');
+                    if (card) {
+                        const el = card.querySelector('.est-extras');
+                        if (el) {
+                            el.textContent = 'Extras: Rs ' + Number(result.data.extra_charges).toLocaleString();
+                            el.classList.remove('hidden');
+                        }
+                    }
+                    this.showChargeModal = false;
+                    this.chargeAmount = '';
+                    this.chargeLabel = '';
+                } else {
+                    alert(result.message || 'Failed to add charge');
+                }
+            } catch(e) {
+                alert('Network error. Please try again.');
+            }
+            this.chargeSubmitting = false;
         },
 
         async confirmEndSession() {

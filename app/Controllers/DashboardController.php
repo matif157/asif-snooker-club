@@ -158,6 +158,11 @@ class DashboardController extends Controller
             "SELECT COUNT(*) AS c FROM bookings WHERE status = 'requested'"
         )[0]['c'] ?? 0);
 
+        // Expenses awaiting owner/finance approval
+        $pendingExpenses = (int) (Database::query(
+            "SELECT COUNT(*) AS c FROM expenses WHERE status = 'pending'"
+        )[0]['c'] ?? 0);
+
         // Cameras assigned to tables (for command-center shortcuts)
         $tableCameras = [];
         foreach (TableModel::camerasByTable() as $row) {
@@ -214,6 +219,7 @@ class DashboardController extends Controller
             'arrivingSoon'        => $arrivingSoon,
             'maintenanceCount'    => $maintenanceCount,
             'pendingBookings'     => $pendingBookings,
+            'pendingExpenses'     => $pendingExpenses,
             'monthOverBudget'     => $monthOverBudget,
             'tableCameras'        => $tableCameras,
         ]);

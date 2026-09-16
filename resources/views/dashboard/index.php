@@ -3,7 +3,7 @@
 /** @var float $todayRevenue, $todayExpenses, $estimatedProfit, $yesterdayRevenue, $weekRevenue */
 /** @var int $yesterdaySessions, $weekSessions, $revenueDelta, $sessionsDelta, $weekRevenueDelta, $weekSessionsDelta */
 /** @var array $outstanding, $upcomingBookings, $recentSessions, $activeSessions, $topTablesToday, $longRunning, $arrivingSoon */
-/** @var int $unpaidToday, $maintenanceCount, $pendingBookings */
+/** @var int $unpaidToday, $maintenanceCount, $pendingBookings, $pendingExpenses */
 /** @var array $monthOverBudget */
 /** @var float $unpaidTodayTotal */
 /** @var int $longRunMinutes */
@@ -282,7 +282,7 @@ if (user_can('customers.manage')) $quickActions[] = ['/customers/create', 'New C
                     <h3 class="text-sm font-semibold text-white uppercase tracking-wider">Needs Attention</h3>
                     <span class="text-xs text-slate-500" id="alert-count"></span>
                 </div>
-                <?php $alertCount = ($unpaidToday > 0 ? 1 : 0) + count($arrivingSoon) + count($longRunning) + ($maintenanceCount > 0 ? 1 : 0) + ($pendingBookings > 0 ? 1 : 0) + (empty($monthOverBudget) ? 0 : 1); ?>
+                <?php $alertCount = ($unpaidToday > 0 ? 1 : 0) + count($arrivingSoon) + count($longRunning) + ($maintenanceCount > 0 ? 1 : 0) + ($pendingBookings > 0 ? 1 : 0) + ($pendingExpenses > 0 ? 1 : 0) + (empty($monthOverBudget) ? 0 : 1); ?>
                 <script>document.getElementById('alert-count').textContent = '<?= $alertCount ?> alert<?= $alertCount === 1 ? '' : 's' ?>';</script>
                 <?php if ($alertCount === 0): ?>
                     <div class="flex flex-col items-center justify-center py-6 text-center">
@@ -303,6 +303,19 @@ if (user_can('customers.manage')) $quickActions[] = ['/customers/create', 'New C
                             </div>
                         </div>
                         <span class="text-xs text-sky-400 font-semibold">Approve →</span>
+                    </a>
+                <?php endif; ?>
+
+                <?php if ($pendingExpenses > 0): ?>
+                    <a href="/expenses" class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/15 transition">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                            <div>
+                                <p class="text-xs font-medium text-white"><?= $pendingExpenses ?> expense<?= $pendingExpenses === 1 ? '' : 's' ?> awaiting approval</p>
+                                <p class="text-[11px] text-slate-500">Recorded by staff — approve or reject in Expenses</p>
+                            </div>
+                        </div>
+                        <span class="text-xs text-amber-400 font-semibold">Review →</span>
                     </a>
                 <?php endif; ?>
 
