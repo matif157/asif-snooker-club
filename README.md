@@ -119,6 +119,14 @@ php database/backup.php        # writes storage/backups/backup-YYYYMMDD-HHiiss.s
 # Backups are excluded from git.
 ```
 
+## Demo Data
+
+`php database/seed_demo.php` wipes and reseeds a tidy, coherent demo dataset —
+7 tables, 2 active sessions, bookings that include a **pending portal request to approve**,
+expenses and history — and is safe to re-run any time.
+Portal login: **Ali Raza / PIN `1234`**. Reserve a table as a member, then approve it
+from the Counter role to watch the dashboard alert clear.
+
 ## Export / Import
 
 - **Export CSV** appears on the Sessions, Bookings, Payments and Expenses pages and
