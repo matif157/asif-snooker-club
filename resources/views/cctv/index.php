@@ -295,7 +295,7 @@ function closeEditCamera() {
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>
+<script src="/assets/vendor/hls.min.js"></script>
 <script>
 function openLive(url) {
     document.getElementById('liveFrame').src = url;

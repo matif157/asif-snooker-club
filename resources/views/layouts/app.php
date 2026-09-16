@@ -31,8 +31,8 @@ $currentPage = basename($_SERVER['REQUEST_URI'] ?? '/');
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="/assets/vendor/chart.umd.min.js"></script>
+    <script defer src="/assets/vendor/alpine.min.js"></script>
     <link rel="stylesheet" href="/assets/css/app.css">
 </head>
 <body class="bg-ink-900 text-slate-200 min-h-screen font-sans antialiased">

@@ -280,7 +280,7 @@ class SessionController extends Controller
         }
 
         $session = \App\Models\ClubSession::find($id);
-        if (!$session || $session->status === 'completed') {
+        if (!$session || in_array($session->status, ['completed', 'cancelled'], true)) {
             Response::error('Session not found');
         }
 
@@ -289,11 +289,21 @@ class SessionController extends Controller
             Response::error('Invalid charge amount');
         }
 
+        $label = trim((string) Request::input('label', ''));
+        $extra = (float) $session->extra_charges + $amount;
+
         $session->update([
-            'extra_charges' => (float) $session->extra_charges + $amount,
+            'extra_charges' => $extra,
+            'notes'         => trim(($session->notes ? $session->notes . "\n" : '') . 'Extra ' . number_format($amount, 2) . ' — ' . ($label !== '' ? $label : 'charge')),
         ]);
 
-        Response::success(['extra_charges' => $session->extra_charges], 'Charge added');
+        \App\Services\AuditService::log('session_extra_charge', 'session', $session->id, null, [
+            'amount' => $amount,
+            'label'  => $label,
+            'table'  => (int) $session->table_id,
+        ]);
+
+        Response::success(['extra_charges' => $extra], 'Charge added');
     }
 
     public function apiDiscount(int $id): void
