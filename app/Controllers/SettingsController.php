@@ -155,6 +155,8 @@ class SettingsController extends Controller
             'peak_enabled', 'peak_start', 'peak_end', 'peak_rate_multiplier',
             'night_start', 'night_end',
             'accent_color',
+            'reminder_enabled', 'reminder_horizon_min',
+            'booking_reminder_template', 'outstanding_reminder_template',
         ];
 
         foreach ($allowed as $key) {

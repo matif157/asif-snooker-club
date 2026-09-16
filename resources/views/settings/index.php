@@ -306,6 +306,47 @@
         </div>
     </div>
 
+    <!-- Reminders & notifications -->
+    <div class="card p-5 sm:p-6" id="reminders">
+        <h2 class="text-lg font-semibold text-white mb-1">Reminders &amp; Notifications</h2>
+        <p class="text-sm text-slate-400 mb-5">
+            Scheduled WhatsApp reminders for upcoming bookings and outstanding balances.
+            Reviewed under <a href="<?= e(url('/reminders')) ?>" class="text-emerald-400 hover:underline">Reminders Center</a>
+            and auto-batched hourly by the cron job (<code class="text-slate-500">database/remind.php --run</code>).
+        </p>
+        <form method="POST" action="<?= e(url('/settings')) ?>">
+            <?= csrf_field() ?>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="flex items-end">
+                    <label class="flex items-center gap-2 text-sm cursor-pointer">
+                        <input type="checkbox" name="reminder_enabled" value="1" <?= (int) ($settings['reminder_enabled'] ?? 1) === 1 ? 'checked' : '' ?> class="w-4 h-4 rounded accent-emerald-500">
+                        <span class="text-slate-300 font-medium">Enabled</span>
+                    </label>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1.5">Booking reminder window (min before start)</label>
+                    <input name="reminder_horizon_min" type="number" min="15" step="15" class="input" value="<?= e($settings['reminder_horizon_min'] ?? '120') ?>">
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1.5">Booking reminder template</label>
+                    <textarea name="booking_reminder_template" rows="4" class="input"><?= e($settings['booking_reminder_template'] ?? '') ?></textarea>
+                    <p class="text-[11px] text-slate-500 mt-1">Placeholders: {name} {club} {date} {time} {table}</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1.5">Outstanding reminder template</label>
+                    <textarea name="outstanding_reminder_template" rows="4" class="input"><?= e($settings['outstanding_reminder_template'] ?? '') ?></textarea>
+                    <p class="text-[11px] text-slate-500 mt-1">Placeholders: {name} {club} {currency} {amount}</p>
+                </div>
+            </div>
+            <div class="mt-5 flex items-center justify-between">
+                <button type="submit" class="btn-primary">Save Reminders</button>
+                <a href="<?= e(url('/reminders')) ?>" class="btn-secondary text-xs">Open Reminders Center</a>
+            </div>
+        </form>
+    </div>
+
     <!-- Roles & permissions -->
     <?php
         $editableRoles = ['eco', 'counter', 'staff', 'auditor'];

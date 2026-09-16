@@ -9,6 +9,7 @@ use App\Controllers\DashboardController;
 use App\Controllers\ExpenseController;
 use App\Controllers\PaymentController;
 use App\Controllers\PortalController;
+use App\Controllers\ReminderController;
 use App\Controllers\ReportsController;
 use App\Controllers\SessionController;
 use App\Controllers\SettingsController;
@@ -76,6 +77,7 @@ $router->get('/reports/pnl', [ReportsController::class, 'pnl']);
 $router->get('/reports/analytics', [ReportsController::class, 'analytics']);
 $router->get('/reports/followup', [ReportsController::class, 'followup']);
 $router->get('/reports/audit', [ReportsController::class, 'audit']);
+$router->get('/reminders', [ReminderController::class, 'index']);
 
 // Public customer portal
 $router->get('/portal', [PortalController::class, 'index']);

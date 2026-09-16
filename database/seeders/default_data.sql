@@ -71,7 +71,11 @@ INSERT INTO settings (`key`, value, `group`) VALUES
 ('night_end',            '06:00',               'pricing'),
 ('whatsapp_template',    'Assalam o Alaikum {name}! Thank you for visiting Asif Snooker Club.', 'notifications'),
 ('close_table_bookings', '0',                   'bookings'),
-('accent_color',         '#10b981',             'appearance');
+('accent_color',         '#10b981',             'appearance'),
+('reminder_enabled',              '1', 'notifications'),
+('reminder_horizon_min',          '120', 'notifications'),
+('booking_reminder_template',     'Hi {name}! Just a friendly reminder: your snooker booking at {club} is today at {time} on Table {table}. See you there!', 'notifications'),
+('outstanding_reminder_template', 'Hi {name}! A gentle reminder from {club} that you have an outstanding balance of {currency} {amount}. Please settle at your convenience. Thank you!', 'notifications');
 
 -- Default tables (club starts clean; comment out if you prefer to add via UI)
 INSERT INTO tables (number, name, type, hourly_rate, min_charge, status, sort_order) VALUES
