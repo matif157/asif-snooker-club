@@ -42,17 +42,28 @@ use App\Controllers\CameraController;
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             <?php foreach ($cameras as $cam): ?>
                 <?php $stream = CameraController::streamUrl($serverUrl, $cam['stream_name']); ?>
+                <?php $hls    = CameraController::hlsUrl($serverUrl, $cam['stream_name']); ?>
+                <?php $live   = $streamMode === 'live' && $hls; ?>
                 <div class="card p-3 group">
                     <div class="relative rounded-xl overflow-hidden bg-ink-900 aspect-video ring-1 ring-white/10">
                         <?php if ((int) $cam['enabled'] && $stream): ?>
-                            <img src="<?= e($stream) ?>"
-                                 alt="<?= e($cam['name']) ?>"
-                                 class="w-full h-full object-cover"
-                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="hidden absolute inset-0 flex-col items-center justify-center text-slate-500">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mb-2 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                                <p class="text-xs">No signal</p>
-                            </div>
+                            <?php if ($live): ?>
+                                <video class="camera-video w-full h-full object-cover" muted autoplay playsinline
+                                       data-hls-src="<?= e($hls) ?>"></video>
+                                <div class="hidden absolute inset-0 flex-col items-center justify-center text-slate-500">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mb-2 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                    <p class="text-xs">No signal</p>
+                                </div>
+                            <?php else: ?>
+                                <img src="<?= e($stream) ?>"
+                                     alt="<?= e($cam['name']) ?>"
+                                     class="w-full h-full object-cover"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div class="hidden absolute inset-0 flex-col items-center justify-center text-slate-500">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mb-2 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                    <p class="text-xs">No signal</p>
+                                </div>
+                            <?php endif; ?>
                         <?php else: ?>
                             <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-500">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mb-2 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
@@ -63,6 +74,13 @@ use App\Controllers\CameraController;
                             <span class="absolute top-2 left-2 flex items-center gap-1.5 rounded-md bg-black/60 backdrop-blur px-2 py-1 text-[10px] text-emerald-300 font-medium">
                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> LIVE
                             </span>
+                            <?php if ($live && CameraController::playerUrl($serverUrl, $cam['stream_name'])): ?>
+                                <button type="button" onclick="openLive('<?= e(CameraController::playerUrl($serverUrl, $cam['stream_name'])) ?>')"
+                                        class="absolute top-2 right-2 flex items-center gap-1 rounded-md bg-black/60 backdrop-blur px-2 py-1 text-[10px] text-sky-300 font-medium hover:text-sky-200 hover:bg-black/80 transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3l14 9-14 9V3z"/></svg>
+                                    Fullscreen
+                                </button>
+                            <?php endif; ?>
                         <?php endif; ?>
                     </div>
                     <div class="flex items-center justify-between mt-3 px-1">
@@ -260,3 +278,57 @@ function closeEditCamera() {
 }
 <?php endif; ?>
 </script>
+
+<?php if ($streamMode === 'live'): ?>
+<!-- Fullscreen WebRTC player (go2rtc's own player page, HLS fallback built-in) -->
+<div id="liveModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-4" x-cloak>
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeLive()"></div>
+    <div class="relative w-full max-w-4xl">
+        <div class="rounded-2xl overflow-hidden bg-black ring-1 ring-white/15 shadow-2xl">
+            <iframe id="liveFrame" src="about:blank" title="Live camera" allow="autoplay"
+                    class="w-full aspect-video bg-black"></iframe>
+        </div>
+        <div class="flex items-center justify-between mt-3">
+            <p class="text-sm text-slate-400">WebRTC when available, HLS otherwise (served by go2rtc).</p>
+            <button onclick="closeLive()" class="btn-secondary">Close</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>
+<script>
+function openLive(url) {
+    document.getElementById('liveFrame').src = url;
+    document.getElementById('liveModal').classList.remove('hidden');
+}
+function closeLive() {
+    document.getElementById('liveModal').classList.add('hidden');
+    document.getElementById('liveFrame').src = 'about:blank';
+}
+
+document.querySelectorAll('.camera-video').forEach(video => {
+    const showPlaceholder = () => {
+        video.style.display = 'none';
+        if (video.nextElementSibling) video.nextElementSibling.style.display = 'flex';
+    };
+    video.addEventListener('error', showPlaceholder);
+    video.addEventListener('stalled', showPlaceholder);
+    if (window.Hls && Hls.isSupported()) {
+        const hls = new Hls({ lowLatencyMode: true });
+        hls.loadSource(video.dataset.hlsSrc);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.ERROR, (_, data) => {
+            if (data.fatal) showPlaceholder();
+        });
+        video.muted = true;
+        video.play().catch(showPlaceholder);
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = video.dataset.hlsSrc;
+        video.muted = true;
+        video.play().catch(showPlaceholder);
+    } else {
+        showPlaceholder();
+    }
+});
+</script>
+<?php endif; ?>

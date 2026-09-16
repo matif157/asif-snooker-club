@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Core;
 
+use App\Services\SettingsService;
+
 class Application
 {
     private array $authExempt = ['/login', '/install', '/api/auth/login', '/portal', '/portal/login', '/portal/logout', '/portal/bookings'];
@@ -102,10 +104,44 @@ class Application
         header('Referrer-Policy: strict-origin-when-cross-origin');
         header('X-Frame-Options: DENY');
         header('Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=()');
-        header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: http: https:; media-src 'self' blob: http: https:; connect-src 'self' ws: wss: http: https:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';");
+
+        $csp = self::baseCsp();
+        $frame = "'self'";
+        try {
+            $media = SettingsService::get('cctv_server_url', '');
+            if (is_string($media) && $media !== '') {
+                $origin = self::originFromUrl($media);
+                if ($origin !== null) {
+                    $frame .= ' ' . $origin;
+                }
+            }
+        } catch (\Throwable) {
+            // DB not reachable — keep the baseline policy.
+        }
+        $csp .= " frame-src {$frame};";
+        header('Content-Security-Policy: ' . $csp);
+
         if (self::isSecureRequest()) {
             header('Strict-Transport-Security: max-age=63072000');
         }
+    }
+
+    private static function baseCsp(): string
+    {
+        return "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: http: https:; media-src 'self' blob: http: https:; connect-src 'self' ws: wss: http: https:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';";
+    }
+
+    private static function originFromUrl(string $url): ?string
+    {
+        $parts = parse_url($url);
+        if (!isset($parts['scheme'], $parts['host'])) {
+            return null;
+        }
+        $origin = $parts['scheme'] . '://' . $parts['host'];
+        if (isset($parts['port'])) {
+            $origin .= ':' . $parts['port'];
+        }
+        return $origin;
     }
 
     private static function renderErrorResponse(\Throwable $e): void

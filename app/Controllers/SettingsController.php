@@ -206,7 +206,7 @@ class SettingsController extends Controller
             'booking_reminder_template', 'outstanding_reminder_template',
             'custom_field_1_label', 'custom_field_2_label', 'custom_field_3_label',
             'custom_field_4_label', 'custom_field_5_label',
-            'cctv_server_url',
+            'cctv_server_url', 'cctv_stream_mode',
         ];
 
         foreach ($allowed as $key) {
@@ -217,6 +217,12 @@ class SettingsController extends Controller
             $value = trim((string) $value);
 
             if ($key === 'accent_color' && !preg_match('/^#[0-9a-fA-F]{6}$/', $value)) {
+                continue;
+            }
+            if ($key === 'cctv_stream_mode' && !in_array($value, ['img', 'live'], true)) {
+                continue;
+            }
+            if ($key === 'cctv_server_url' && $value !== '' && filter_var($value, FILTER_VALIDATE_URL) === false) {
                 continue;
             }
 

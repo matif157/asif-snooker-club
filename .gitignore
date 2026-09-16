@@ -11,3 +11,5 @@ Thumbs.db
 .idea/
 .vscode/
 node_modules/
+# go2rtc camera config (contains credentials)
+go2rtc.yaml

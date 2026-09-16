@@ -189,13 +189,30 @@ No external SMS/voice API or monthly cost required.
 ## CCTV / Live Camera Wall
 
 The `/cctv` page shows your camera feeds as a no-plugin browser grid. It does **not**
-process video itself — a tiny local media server restreams your IP cameras as HTTP; the CRM
+process video itself — a tiny local media server restreams your IP cameras; the CRM
 just displays them.
+
+Two **grid stream modes** (Settings → CCTV → Grid stream mode):
+
+- **Snapshot image** (default) — each tile is a lightweight image from the media server,
+  works anywhere.
+- **Live video** — real video in the grid: **HLS** via [hls.js](https://hls.js.org) or
+  native HLS in Safari, plus a **Fullscreen** button that opens [go2rtc](https://github.com/AlexxIT/go2rtc)'s
+  own player page (**WebRTC** sub-second latency, HLS fallback).
 
 Setup:
 
-1. Install [go2rtc](https://github.com/AlexxIT/go2rtc) (or [mediamtx](https://github.com/bluenviron/mediamtx)) on a box that can reach the cameras.
-2. Define each camera in its config, e.g.:
+1. Generate the go2rtc config straight from the CRM cameras:
+
+   ```bash
+   php database/go2rtc_config.php        # writes go2rtc.yaml from enabled cameras with RTSP URLs
+   go2rtc -config go2rtc.yaml
+   ```
+
+   (Works on any Linux/Windows/Mac box; the generated file contains camera credentials
+   and is `chmod 600`, so keep it out of git.)
+
+2. Or hand-write it for cameras that aren't in the CRM yet:
 
    ```yaml
    streams:
@@ -203,8 +220,15 @@ Setup:
      tables_all: rtsp://admin:pass@192.168.1.21:554/stream1
    ```
 
-3. In the CRM: **Add Camera** with the same **Stream name** (`table01`, …), optionally the RTSP source, a friendly name + location, and an **Assigned Table** (optional — the table's number/name shows on the tile and a camera shortcut appears on that table in the dashboard command center). Enabled cameras appear in the grid as live `<img>` tiles; missing/offline streams show a "No signal" placeholder. Cameras can be edited straight from the wall (rename, re-assign table, enable/disable).
-4. If go2rtc runs on another machine, set its address in **Settings → CCTV** (default `http://127.0.0.1:1984`).
+3. In the CRM: **Add Camera** with the same **Stream name** (`table01`, …), optionally the
+   RTSP source, a friendly name + location, and an **Assigned Table** (optional — the table's
+   number/name shows on the tile and a camera shortcut appears on that table in the dashboard
+   command center). Enabled cameras appear as live tiles; missing/offline streams show a
+   "No signal" placeholder.
+4. If go2rtc runs on another machine, set its address in **Settings → CCTV**
+   (default `http://127.0.0.1:1984`). In production expose go2rtc over **HTTPS/WSS**
+   (or same-origin) so fullscreen WebRTC works from a TLS page; the CRM's Content-Security
+   Policy automatically allows the configured media-server origin for the fullscreen frame.
 
 Roles with `cctv.view` see the wall; `cctv.manage` (Owner/Admin) can add/remove cameras.
 

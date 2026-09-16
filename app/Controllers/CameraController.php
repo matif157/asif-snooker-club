@@ -37,6 +37,7 @@ class CameraController extends Controller
             'cameras'       => $cameras,
             'tables'        => $tables,
             'canManage'     => user_can('cctv.manage'),
+            'streamMode'    => (string) SettingsService::get('cctv_stream_mode', 'img'),
             'serverUrl'     => rtrim((string) SettingsService::get('cctv_server_url', 'http://127.0.0.1:1984'), '/'),
         ]);
     }
@@ -178,5 +179,27 @@ class CameraController extends Controller
             return null;
         }
         return rtrim($serverUrl ?? 'http://127.0.0.1:1984', '/') . '/stream/' . rawurlencode($streamName);
+    }
+
+    /**
+     * go2rtc HLS endpoint for the tile's live video element.
+     */
+    public static function hlsUrl(?string $serverUrl, ?string $streamName): ?string
+    {
+        if ($streamName === null || $streamName === '') {
+            return null;
+        }
+        return rtrim($serverUrl ?? 'http://127.0.0.1:1984', '/') . '/api/stream.m3u8?src=' . rawurlencode($streamName);
+    }
+
+    /**
+     * go2rtc's own player page (WebRTC with HLS fallback) for the fullscreen modal.
+     */
+    public static function playerUrl(?string $serverUrl, ?string $streamName): ?string
+    {
+        if ($streamName === null || $streamName === '') {
+            return null;
+        }
+        return rtrim($serverUrl ?? 'http://127.0.0.1:1984', '/') . '/play.html?src=' . rawurlencode($streamName);
     }
 }

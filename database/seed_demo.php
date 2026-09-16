@@ -213,6 +213,18 @@ foreach ($expenses as [$category, $amount, $vendor, $description]) {
     ]);
 }
 
+// Cameras — give the demo streams stable go2rtc stream names
+// (rtsp_url is left to the operator; the go2rtc config generator
+//  picks cameras that have an RTSP source).
+$db->exec("UPDATE cameras SET stream_name = 'main_hall' WHERE id = 1");
+$db->exec("UPDATE cameras SET stream_name = 'entrance' WHERE id = 2 AND stream_name IS NULL");
+
+// CCTV defaults (only when not already configured)
+$db->exec("INSERT INTO settings (`key`, `value`, `group`) VALUES ('cctv_server_url', 'http://127.0.0.1:1984', 'cctv')
+          ON DUPLICATE KEY UPDATE `key` = `key`");
+$db->exec("INSERT INTO settings (`key`, `value`, `group`) VALUES ('cctv_stream_mode', 'img', 'cctv')
+          ON DUPLICATE KEY UPDATE `key` = `key`");
+
 // ---------------------------------------------------------------
 // Summary
 // ---------------------------------------------------------------

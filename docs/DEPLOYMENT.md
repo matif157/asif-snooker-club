@@ -135,7 +135,9 @@ Then verify permissions/permissions table seeded. Default role matrix is seeded 
 - Create staff accounts from **Staff**.
 - **Tables** — 7 seeded demo tables exist; rename/re-price to match the club floor.
 - **Cameras** — add per-table / wall cameras on the CCTV page (URL used by the
-  browser, e.g. JPEG/RTSP proxy or HLS).
+  browser, e.g. JPEG/RTSP proxy or HLS). For live streaming run
+  `php database/go2rtc_config.php` to generate `go2rtc.yaml` from the cameras and
+  start `go2rtc -config go2rtc.yaml`; set the grid mode to **Live video** in Settings → CCTV.
 
 ---
 

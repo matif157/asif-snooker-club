@@ -402,6 +402,13 @@
                     <input name="cctv_server_url" class="input" placeholder="http://127.0.0.1:1984"
                            value="<?= e($settings['cctv_server_url'] ?? 'http://127.0.0.1:1984') ?>">
                 </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1.5">Grid stream mode</label>
+                    <select name="cctv_stream_mode" class="input">
+                        <option value="img" <?= ($settings['cctv_stream_mode'] ?? 'img') === 'img' ? 'selected' : '' ?>>Snapshot image (lightweight)</option>
+                        <option value="live" <?= ($settings['cctv_stream_mode'] ?? 'img') === 'live' ? 'selected' : '' ?>>Live video (HLS + WebRTC fullscreen)</option>
+                    </select>
+                </div>
             </div>
             <div class="mt-5">
                 <button type="submit" class="btn-primary">Save CCTV</button>
