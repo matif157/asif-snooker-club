@@ -1,7 +1,8 @@
 <?php
 /** @var array $errors */
 /** @var array $old */
-$clubName    = config('app.name', 'ASIF SNOOKER CLUB');
+$clubName    = \App\Services\SettingsService::clubName();
+$clubAddress = \App\Services\SettingsService::clubAddress();
 $clockIcon = '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
 ?>
 <!DOCTYPE html>
@@ -109,7 +110,7 @@ $clockIcon = '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none
         </div>
 
         <p class="text-center text-xs text-slate-500 mt-6">
-            <?= e($clubName) ?> · D Ground, Faisalabad · <?= date('Y') ?>
+            <?= e($clubName) ?> · <?= e($clubAddress) ?> · <?= date('Y') ?>
         </p>
             </div>
         </div>
@@ -117,7 +118,7 @@ $clockIcon = '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none
         <!-- Right: club atmosphere (desktop) -->
         <div class="relative hidden lg:block min-h-screen overflow-hidden">
             <img src="https://images.unsplash.com/photo-1550345332-09e3ac987658?w=1200&q=80&amp;auto=format&amp;fit=crop"
-                 alt="Snooker at Asif Snooker Club" loading="lazy"
+                 alt="Snooker at <?= e($clubName) ?>" loading="lazy"
                  referrerpolicy="no-referrer"
                  class="absolute inset-0 w-full h-full object-cover">
             <div class="absolute inset-0" style="background:linear-gradient(100deg, rgba(11,14,20,0.92) 0%, rgba(11,14,20,0.4) 45%, rgba(11,14,20,0.12) 100%);"></div>
@@ -125,10 +126,10 @@ $clockIcon = '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none
                 <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-md shadow-emerald-500/20 flex items-center justify-center ring-1 ring-white/10">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>
                 </div>
-                <div class="text-sm font-bold text-white tracking-tight">ASIF SNOOKER CLUB</div>
+                <div class="text-sm font-bold text-white tracking-tight"><?= e($clubName) ?></div>
             </div>
             <div class="absolute bottom-0 left-0 p-8">
-                <p class="text-xs font-semibold text-emerald-400 tracking-[0.2em] uppercase">D Ground · Faisalabad</p>
+                <p class="text-xs font-semibold text-emerald-400 tracking-[0.2em] uppercase"><?= e($clubAddress) ?></p>
                 <h2 class="mt-2 text-3xl font-extrabold text-white leading-snug">The house of<br>Pakistani snooker</h2>
                 <div class="mt-4 flex items-center gap-2">
                     <span class="w-1.5 h-1.5 rounded-full" style="background:var(--a-400)"></span>

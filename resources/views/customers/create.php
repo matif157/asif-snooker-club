@@ -156,7 +156,7 @@ $customer = $customer ?? null;
                     <?php if ($hasPin && !empty($customer['whatsapp'])): ?>
                         <?php
                             $pinWaDigits = preg_replace('/\D+/', '', $customer['whatsapp']);
-                            $pinWaText   = 'Salam ' . $customer['name'] . '! Your Asif Snooker Club member portal PIN is ready. Sign in at ' . url('/portal') . ' with your phone number and 4-digit PIN to view your balance and book a table.';
+                            $pinWaText   = 'Salam ' . $customer['name'] . '! Your ' . \App\Services\SettingsService::clubName() . ' member portal PIN is ready. Sign in at ' . url('/portal') . ' with your phone number and 4-digit PIN to view your balance and book a table.';
                         ?>
                         <a href="https://wa.me/<?= e($pinWaDigits) ?>?text=<?= rawurlencode($pinWaText) ?>"
                            class="btn-secondary !py-2.5 text-xs" target="_blank" rel="noopener">

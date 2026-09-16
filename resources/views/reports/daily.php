@@ -107,7 +107,7 @@ function shareClosing(el) {
     const net = el.dataset.net;
     const text = 'Daily closing ' + date + ' — Collected: Rs ' + Number(collected).toLocaleString() +
                  ', Expenses: Rs ' + Number(expenses).toLocaleString() +
-                 ', Net: Rs ' + Number(net).toLocaleString() + ' — Asif Snooker Club';
+                 ', Net: Rs ' + Number(net).toLocaleString() + ' — ' + <?= json_encode(\App\Services\SettingsService::clubName()) ?>;
     window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
     return false;
 }

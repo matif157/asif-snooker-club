@@ -241,6 +241,12 @@ point the domain at `public/`.
 > Full step-by-step guide (release build, Apache/Nginx, TLS, cron, checklist,
 > troubleshooting): see **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
 
+## Multi-Club Readiness
+
+Single-club today; brand/identity is fully settings-driven (no hardcoded club
+names/addresses in views or message templates). Ready-to-scale plan, schema
+design and rollout phases: see **[docs/MULTI_CLUB.md](docs/MULTI_CLUB.md)**.
+
 ## Security & Hardening
 
 - **Session cookies** are `HttpOnly`, `SameSite=Lax` and flagged `Secure` over HTTPS
@@ -266,8 +272,8 @@ point the domain at `public/`.
 - [x] Phase 1: Auth, Tables, Customers, Sessions, Bookings, Payments, Dashboard
 - [x] Phase 2 (core): Expenses, Finance, Staff-ready RBAC, Reports (basic)
 - [x] Phase 3: Customer portal, notifications bell, theme manager (accent + per-user theme), role-permission manager
-- [x] Phase 4 (partial): CCTV camera wall (per-table, RTSP → WebRTC still open), advanced analytics, custom fields
-- [x] Phase 5: Installer wizard, backup/restore, multi-club readiness
+- [x] Phase 4: CCTV camera wall (live mode via go2rtc HLS + WebRTC fullscreen), advanced analytics, custom fields
+- [x] Phase 5: Installer wizard, backup/restore, multi-club readiness (blueprint)
 
 ## License
 

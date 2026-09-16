@@ -62,7 +62,7 @@ if ($hour >= 18 || $hour < 6) {
 
         <!-- Title -->
         <div class="hidden sm:block">
-            <h1 class="text-sm font-semibold text-white tracking-tight">ASIF SNOOKER CLUB</h1>
+            <h1 class="text-sm font-semibold text-white tracking-tight"><?= e(SettingsService::clubName()) ?></h1>
             <div class="flex items-center gap-2 text-xs text-slate-500">
                 <span class="flex items-center gap-1">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>

@@ -121,7 +121,7 @@ function sharePnl(el) {
         ' — Revenue: Rs ' + Number(el.dataset.revenue).toLocaleString() +
         ', Expenses: Rs ' + Number(el.dataset.expenses).toLocaleString() +
         ', Net: Rs ' + Number(el.dataset.net).toLocaleString() +
-        ' (' + el.dataset.txns + ' payments, ' + el.dataset.sessions + ' sessions) — Asif Snooker Club';
+        ' (' + el.dataset.txns + ' payments, ' + el.dataset.sessions + ' sessions) — ' + <?= json_encode(\App\Services\SettingsService::clubName()) ?>;
     window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
     return false;
 }

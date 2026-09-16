@@ -56,6 +56,16 @@ class SettingsService
         self::$cache = null;
     }
 
+    public static function clubName(): string
+    {
+        return (string) self::get('club_name', config('app.name', 'ASIF SNOOKER CLUB'));
+    }
+
+    public static function clubAddress(): string
+    {
+        return (string) self::get('club_address', 'D Ground, Faisalabad');
+    }
+
     public static function clubPhone(): string
     {
         return (string) self::get('club_phone', env('CLUB_PHONE', '+921234567890'));
@@ -68,7 +78,7 @@ class SettingsService
 
     public static function whatsappTemplate(): string
     {
-        return (string) self::get('whatsapp_template', 'Assalam o Alaikum {name}! Thank you for choosing Asif Snooker Club.');
+        return (string) self::get('whatsapp_template', 'Assalam o Alaikum {name}! Thank you for choosing ' . self::clubName() . '.');
     }
 
     /**

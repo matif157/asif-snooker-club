@@ -421,7 +421,8 @@ function shareBooking(el) {
     const name = el.dataset.name || 'customer';
     const phone = (el.dataset.phone || '').replace(/\D+/g, '');
     const clubNo = <?= json_encode(preg_replace('/\D+/', '', \App\Services\SettingsService::clubPhone())) ?>;
-    const text = 'Booking reminder — Asif Snooker Club\n' +
+    const clubName = <?= json_encode(\App\Services\SettingsService::clubName()) ?>;
+    const text = 'Booking reminder — ' + clubName + '\n' +
         'Customer: ' + name + '\n' +
         'Table #' + (el.dataset.table || '') + '\n' +
         'Date: ' + (el.dataset.date || '') + '\n' +

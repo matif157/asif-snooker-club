@@ -340,11 +340,11 @@ class ReportsController extends Controller
 
         $messageReminder = SettingsService::get(
             'reminder_template',
-            'Assalam o Alaikum {name}! This is a friendly reminder from Asif Snooker Club that your balance of Rs {amount} is due. Please settle at your earliest convenience. Thank you!'
+            'Assalam o Alaikum {name}! This is a friendly reminder from ' . SettingsService::clubName() . ' that your balance of Rs {amount} is due. Please settle at your earliest convenience. Thank you!'
         );
         $messageNoShow = SettingsService::get(
             'no_show_template',
-            'Assalam o Alaikum {name}! You missed your scheduled booking at Asif Snooker Club. Let us know if you would like to rebook. Thank you!'
+            'Assalam o Alaikum {name}! You missed your scheduled booking at ' . SettingsService::clubName() . '. Let us know if you would like to rebook. Thank you!'
         );
 
         $outstandingPrepared = [];

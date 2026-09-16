@@ -8,7 +8,7 @@ $currentPage = basename($_SERVER['REQUEST_URI'] ?? '/');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= e(config('app.name', 'ASIF SNOOKER CLUB')) ?></title>
+    <title><?= e(\App\Services\SettingsService::clubName()) ?></title>
     <meta name="csrf-token" content="<?= e(csrf_token()) ?>">
     <?= App\Services\ThemeService::themeBoot(App\Services\ThemeService::userTheme()) ?>
     <?= App\Services\ThemeService::cssVars() ?>

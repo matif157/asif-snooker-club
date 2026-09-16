@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Member Portal — Asif Snooker Club</title>
+    <title>Member Portal — <?= e(\App\Services\SettingsService::clubName()) ?></title>
     <?= App\Services\ThemeService::cssVars() ?>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -37,7 +37,7 @@
             <?= $content ?>
         </main>
         <footer class="py-6 text-center text-[11px] text-slate-600">
-            © <?= date('Y') ?> Asif Snooker Club — D Ground, Faisalabad
+            © <?= date('Y') ?> <?= e(\App\Services\SettingsService::clubName()) ?> — <?= e(\App\Services\SettingsService::clubAddress()) ?>
         </footer>
     </div>
 </body>
