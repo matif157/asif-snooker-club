@@ -45,7 +45,7 @@
         </form>
     </div>
 
-    <!-- Total + Category Breakdown -->
+    <!-- Total + Budgets + Pending -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Total Expenses -->
         <div class="stat-card">
@@ -59,11 +59,58 @@
                 </div>
             </div>
             <p class="text-2xl sm:text-3xl font-bold text-rose-400 tracking-tight">Rs <?= number_format($total) ?></p>
-            <p class="text-xs text-slate-500 mt-3"><?= count($expenses) ?> expense(s) recorded</p>
+            <p class="text-xs text-slate-500 mt-3"><?= count($expenses) ?> expense(s) recorded
+                <?php if ($pending > 0): ?> · <span class="text-amber-400 font-medium"><?= $pending ?> pending approval (Rs <?= number_format($pendingRs) ?>)</span><?php endif; ?>
+            </p>
         </div>
 
-        <!-- Category Breakdown -->
-        <div class="lg:col-span-2 card p-5">
+        <!-- Pending approvals -->
+        <div class="card p-5 flex flex-col">
+            <h3 class="text-sm font-semibold text-white uppercase tracking-wider mb-4">Pending Approvals</h3>
+            <?php if ($pending === 0): ?>
+                <p class="text-sm text-slate-500 py-6 text-center flex-1">All expenses approved ✓</p>
+            <?php else: ?>
+                <p class="text-2xl font-bold text-amber-400"><?= $pending ?> expense<?= $pending === 1 ? '' : 's' ?></p>
+                <p class="text-sm text-slate-400 mt-1">Rs <?= number_format($pendingRs) ?> awaiting approval</p>
+                <p class="text-xs text-slate-500 mt-4 flex-1">Use the Approve / Reject actions in the history table below.</p>
+            <?php endif; ?>
+        </div>
+
+        <!-- Budget vs spend (this month) -->
+        <div class="lg:col-span-1 card p-5">
+            <h3 class="text-sm font-semibold text-white uppercase tracking-wider mb-4">Budget vs Spend <span class="text-slate-500 normal-case tracking-normal">· this month</span></h3>
+            <?php if (empty($budgets)): ?>
+                <p class="text-sm text-slate-500 py-4 text-center">No monthly budgets set yet.</p>
+                <a href="<?= e(url('/settings#finance')) ?>" class="btn-secondary text-xs w-full justify-center">Set Budgets in Settings</a>
+            <?php else: ?>
+                <?php
+                    $totalBudget = array_sum($budgets);
+                    $totalSpent = array_sum($monthApprovedByCategory);
+                ?>
+                <div class="space-y-2.5">
+                    <?php foreach ($budgets as $category => $budget): ?>
+                        <?php $spent = (float) ($monthApprovedByCategory[$category] ?? 0); $over = $spent > $budget; $pct = $budget > 0 ? min(100, round(($spent / $budget) * 100)) : 0; ?>
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs text-slate-300 w-24 truncate font-medium"><?= e(ucfirst(\App\Models\Expense::CATEGORIES[$category] ?? $category)) ?></span>
+                            <div class="flex-1 h-2 rounded-full bg-white/5 overflow-hidden">
+                                <div class="h-full rounded-full <?= $over ? 'bg-rose-500/80' : 'bg-emerald-500/60' ?>" style="width: <?= $pct ?>%"></div>
+                            </div>
+                            <span class="text-xs font-semibold text-white w-24 text-right">Rs <?= number_format($spent) ?><span class="text-slate-500 text-[11px]">/<?= number_format($budget) ?></span></span>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <?php if (count($budgets) > 1): ?>
+                    <div class="mt-3 pt-3 border-t border-white/5 flex items-center justify-between text-xs">
+                        <span class="text-slate-400">Total</span>
+                        <span class="font-semibold <?= $totalSpent > $totalBudget ? 'text-rose-400' : 'text-white' ?>">Rs <?= number_format($totalSpent) ?> / Rs <?= number_format($totalBudget) ?></span>
+                    </div>
+                <?php endif; ?>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- Category Breakdown -->
+    <div class="card p-5">
             <h3 class="text-sm font-semibold text-white uppercase tracking-wider mb-4">By Category</h3>
             <?php if (empty($byCategory)): ?>
                 <p class="text-sm text-slate-500 py-4 text-center">No expenses in this period</p>
@@ -73,7 +120,7 @@
                     <?php foreach ($byCategory as $category => $catTotal): ?>
                         <?php $pct = $total > 0 ? round(($catTotal / $total) * 100, 1) : 0; ?>
                         <div class="flex items-center gap-3">
-                            <span class="text-xs text-slate-300 w-28 truncate font-medium"><?= e(ucfirst($category)) ?></span>
+                            <span class="text-xs text-slate-300 w-28 truncate font-medium"><?= e(ucfirst(\App\Models\Expense::CATEGORIES[$category] ?? $category)) ?></span>
                             <div class="flex-1 h-2 rounded-full bg-white/5 overflow-hidden">
                                 <div class="h-full rounded-full bg-emerald-500/60" style="width: <?= $pct ?>%"></div>
                             </div>
@@ -84,7 +131,6 @@
                 </div>
             <?php endif; ?>
         </div>
-    </div>
 
     <!-- Expenses Table -->
     <div class="card p-6">

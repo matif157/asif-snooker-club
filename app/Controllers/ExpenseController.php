@@ -9,6 +9,7 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Models\Expense;
 use App\Services\CsvService;
+use App\Services\SettingsService;
 
 class ExpenseController extends Controller
 {
@@ -30,12 +31,37 @@ class ExpenseController extends Controller
             $byCategory[$cat] = ($byCategory[$cat] ?? 0) + (float) $exp['amount'];
         }
 
+        // Pending approval queue in the selected period
+        $pending = 0;
+        $pendingRs = 0.0;
+        foreach ($expenses as $exp) {
+            if (($exp['status'] ?? '') === 'pending') {
+                $pending++;
+                $pendingRs += (float) $exp['amount'];
+            }
+        }
+
+        // Approved spend per category for the current month (budget baseline)
+        $monthApprovedByCategory = [];
+        foreach (Expense::forRange(date('Y-m-01'), date('Y-m-d')) as $exp) {
+            if (($exp['status'] ?? 'approved') === 'approved') {
+                $cat = $exp['category'];
+                $monthApprovedByCategory[$cat] = ($monthApprovedByCategory[$cat] ?? 0) + (float) $exp['amount'];
+            }
+        }
+
+        $budgets = SettingsService::expenseBudgets();
+
         $this->view('expenses/index', [
-            'expenses'    => $expenses,
-            'total'       => $total,
-            'byCategory'  => $byCategory,
-            'from'        => $from,
-            'to'          => $to,
+            'expenses'               => $expenses,
+            'total'                  => $total,
+            'byCategory'             => $byCategory,
+            'monthApprovedByCategory'=> $monthApprovedByCategory,
+            'budgets'                => $budgets,
+            'pending'                => $pending,
+            'pendingRs'              => $pendingRs,
+            'from'                   => $from,
+            'to'                     => $to,
         ]);
     }
 

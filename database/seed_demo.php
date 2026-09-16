@@ -213,6 +213,18 @@ foreach ($expenses as [$category, $amount, $vendor, $description]) {
     ]);
 }
 
+// One expense logged by the counter — awaiting owner/finance approval
+$db->prepare(
+    'INSERT INTO expenses (category, amount, expense_date, vendor, description, status, created_by)
+     VALUES (:category, :amount, :date, :vendor, :description, "pending", 3)'
+)->execute([
+    ':category' => 'supplies',
+    ':amount'   => 420.00,
+    ':date'     => date('Y-m-d', $now),
+    ':vendor'   => 'Paper World',
+    ':description' => 'Ball polish, chalk & score sheets',
+]);
+
 // Cameras — give the demo streams stable go2rtc stream names
 // (rtsp_url is left to the operator; the go2rtc config generator
 //  picks cameras that have an RTSP source).
@@ -224,6 +236,19 @@ $db->exec("INSERT INTO settings (`key`, `value`, `group`) VALUES ('cctv_server_u
           ON DUPLICATE KEY UPDATE `key` = `key`");
 $db->exec("INSERT INTO settings (`key`, `value`, `group`) VALUES ('cctv_stream_mode', 'img', 'cctv')
           ON DUPLICATE KEY UPDATE `key` = `key`");
+
+// Expense budgets (only when not already configured)
+$demoBudgets = json_encode([
+    'rent'         => 45000,
+    'electricity'  => 3000,
+    'refreshments' => 2500,
+    'maintenance'  => 2000,
+    'supplies'     => 1000,
+]);
+$db->exec(
+    "INSERT IGNORE INTO settings (`key`, `value`, `group`)
+     SELECT 'expense_budgets', '" . str_replace("'", "''", $demoBudgets) . "', 'finance'"
+);
 
 // ---------------------------------------------------------------
 // Summary

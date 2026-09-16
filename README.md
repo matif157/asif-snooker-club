@@ -11,7 +11,7 @@ D Ground, Faisalabad. Digitizes the handwritten daily register into a real-time 
 - **Customers CRM** — profiles with visit/revenue history, **click-to-call** (`tel:`) and **WhatsApp** (`wa.me`) buttons, **CSV import & export**, per-session payment collection incl. partial
 - **Bookings** — table availability checks, status workflow (Requested → Confirmed → Arrived → Active → Completed), **auto-activation** on session start/end, stale bookings auto-expire, **advance deposit at booking** and **"pay later"** record/approval from the bookings page
 - **Payments** — Cash, **JazzCash** (with transaction reference), Bank Transfer, Card; advance deposits and later payments are recorded against the booking, outstanding balance tracking; printable receipts
-- **Expenses & Finance** — categorized expenses (Electricity, Labour, Rent, etc.) with approval tracking
+- **Expenses & Finance** — categorized expenses (Electricity, Labour, Rent, etc.) with approval workflow (staff record → owner/finance approve), **monthly budgets per category** (Settings → Expense Budgets) with live **Budget vs Spend** progress bars + over-budget highlights and a **pending-approvals overview** on the Expenses screen
 - **Daily Closing** — collected by method, sessions billed, expenses, outstanding, with print & WhatsApp share
 - **Analytics** — revenue by hour (peak staffing), table utilization, top customers, daily revenue vs expenses, sessions-by-hour, category & booking-status breakdowns (7–90 day ranges)
 - **Sessions history** — filterable by date range, table, payment status

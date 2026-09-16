@@ -195,6 +195,18 @@ class SettingsController extends Controller
             Response::redirect('/settings');
         }
 
+        // Monthly expense budgets (JSON map category => amount)
+        $rawBudgets = (array) (Request::all()['budget'] ?? []);
+        $budgets = [];
+        foreach ($rawBudgets as $category => $amount) {
+            $amount = trim((string) $amount);
+            if ($amount === '' || (float) $amount < 0) {
+                continue;
+            }
+            $budgets[(string) $category] = round((float) $amount, 2);
+        }
+        SettingsService::set('expense_budgets', $budgets ? (string) json_encode($budgets) : '', 'finance');
+
         $allowed = [
             'club_name', 'club_phone', 'club_address', 'currency',
             'business_hours_open', 'business_hours_close',

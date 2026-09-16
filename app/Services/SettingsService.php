@@ -76,6 +76,29 @@ class SettingsService
         return self::clubPhone();
     }
 
+    /**
+     * Monthly expense budget per category (JSON map category => amount).
+     */
+    public static function expenseBudgets(): array
+    {
+        $raw = (string) self::get('expense_budgets', '');
+        if ($raw === '') {
+            return [];
+        }
+        $map = json_decode($raw, true);
+        if (!is_array($map)) {
+            return [];
+        }
+        $clean = [];
+        foreach ($map as $cat => $amount) {
+            if ((string) $cat === '') {
+                continue;
+            }
+            $clean[(string) $cat] = max(0.0, (float) $amount);
+        }
+        return $clean;
+    }
+
     public static function whatsappTemplate(): string
     {
         return (string) self::get('whatsapp_template', 'Assalam o Alaikum {name}! Thank you for choosing ' . self::clubName() . '.');

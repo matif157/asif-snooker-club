@@ -130,6 +130,39 @@
         </form>
     </div>
 
+    <!-- Expense budgets & approvals -->
+    <div class="card p-5 sm:p-6" id="finance">
+        <h2 class="text-lg font-semibold text-white mb-1">Expense Budgets</h2>
+        <p class="text-sm text-slate-400 mb-5">Monthly budget per expense category. The Expenses screen compares approved spend against these targets.</p>
+        <?php
+            $budgetMap = \App\Services\SettingsService::expenseBudgets();
+            $liveCategories = \App\Core\Database::query('SELECT DISTINCT category FROM expenses WHERE category IS NOT NULL ORDER BY category');
+            $categories = array_keys(\App\Models\Expense::CATEGORIES);
+            foreach ($liveCategories as $row) {
+                $categories[] = (string) $row['category'];
+            }
+            $categories = array_values(array_unique($categories));
+        ?>
+        <form method="POST" action="<?= e(url('/settings')) ?>">
+            <?= csrf_field() ?>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <?php foreach ($categories as $category): ?>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">
+                            <?= e(ucfirst(\App\Models\Expense::CATEGORIES[$category] ?? $category)) ?> (Rs)
+                        </label>
+                        <input name="budget[<?= e($category) ?>]" type="number" class="input" min="0" step="100" placeholder="No budget"
+                               value="<?= e(isset($budgetMap[$category]) && $budgetMap[$category] > 0 ? $budgetMap[$category] : '') ?>">
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <div class="mt-5 flex items-center justify-between">
+                <button type="submit" class="btn-primary">Save Budgets</button>
+                <a href="<?= e(url('/expenses')) ?>" class="btn-secondary text-xs">Review spend vs budget</a>
+            </div>
+        </form>
+    </div>
+
     <!-- Appearance / theme & accent -->
     <div class="card p-5 sm:p-6" id="appearance">
         <h2 class="text-lg font-semibold text-white mb-4">Appearance</h2>
