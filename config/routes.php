@@ -83,10 +83,14 @@ $router->get('/portal', [PortalController::class, 'index']);
 // Settings & Staff
 $router->get('/settings', [SettingsController::class, 'index']);
 $router->post('/settings', [SettingsController::class, 'update']);
+$router->post('/settings/roles', [SettingsController::class, 'updateRoles']);
 $router->post('/settings/backup', [SettingsController::class, 'backup']);
 $router->get('/settings/backups/{name}', [SettingsController::class, 'downloadBackup']);
 $router->post('/settings/users/create', [SettingsController::class, 'createUser']);
 $router->post('/settings/users/{id}/update', [SettingsController::class, 'updateUser']);
+
+// Theme preference (per user)
+$router->post('/theme', [SettingsController::class, 'theme']);
 
 // ── API / AJAX routes ──────────────────────────────────────────────────
 $router->get('/api/tables', [TableController::class, 'apiList']);

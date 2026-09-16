@@ -128,13 +128,14 @@ function sharePnl(el) {
 
 const pnlCtx = document.getElementById('pnlChart');
 if (pnlCtx) {
+    const _aHex = getComputedStyle(document.documentElement).getPropertyValue('--a-500').trim() || '#10b981';
     const days = <?= json_encode($days) ?>;
     new Chart(pnlCtx, {
         type: 'bar',
         data: {
             labels: days.map(d => d.date.slice(8) + '/', ),
             datasets: [
-                { label: 'Revenue', data: days.map(d => d.revenue), backgroundColor: 'rgba(16,185,129,0.35)', borderColor: '#10b981', borderWidth: 1, borderRadius: 4 },
+                { label: 'Revenue', data: days.map(d => d.revenue), backgroundColor: _aHex + '59', borderColor: _aHex, borderWidth: 1, borderRadius: 4 },
                 { label: 'Expenses', data: days.map(d => d.expense), backgroundColor: 'rgba(244,63,94,0.35)', borderColor: '#f43f5e', borderWidth: 1, borderRadius: 4 }
             ]
         },

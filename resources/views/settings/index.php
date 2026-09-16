@@ -130,6 +130,88 @@
         </form>
     </div>
 
+    <!-- Appearance / theme & accent -->
+    <div class="card p-5 sm:p-6" id="appearance">
+        <h2 class="text-lg font-semibold text-white mb-4">Appearance</h2>
+        <p class="text-sm text-slate-400 mb-5">Pick the club accent colour — it flows through buttons, badges, nav and charts instantly. Theme mode is stored per user account.</p>
+        <form method="POST" action="<?= e(url('/settings')) ?>"
+          x-data="{
+            accent: '<?= e($settings['accent_color'] ?? '#10b981') ?>',
+            mix(hex, target = '500') {
+                const n = hex.replace('#','').match(/../g).map(x => parseInt(x,16));
+                if (!n) return hex;
+                const w = target === '400' ? 15 : target === '300' ? 30 : 0;
+                const b = target === '600' ? 14 : 0;
+                const ch = (c) => Math.round(c + (255 - c) * (w/100) - c * (b/100));
+                const rgb = n.map(ch);
+                const toHex = (v) => v.toString(16).padStart(2,'0');
+                return ['#' + rgb.map(toHex).join(''), rgb.join(' ')];
+            },
+            applyAccent() {
+                const rs = document.documentElement.style;
+                ['300','400','500','600'].forEach(s => {
+                    const [hex, rgb] = this.mix(this.accent, s);
+                    rs.setProperty('--a-' + s, hex);
+                    rs.setProperty('--a-rgb-' + s, rgb);
+                });
+            }
+          }"
+          x-effect="applyAccent()">
+            <?= csrf_field() ?>
+            <input type="hidden" name="accent_color" :value="accent">
+            <div class="flex items-center gap-3">
+                <?php $swatches = [
+                    '#10b981' => 'Emerald',
+                    '#0f9d6f' => 'Baize',
+                    '#8b5cf6' => 'Violet',
+                    '#0ea5e9' => 'Sky',
+                    '#f43f5e' => 'Rose',
+                    '#f59e0b' => 'Gold',
+                ]; ?>
+                <?php foreach ($swatches as $hex => $label): ?>
+                    <button type="button" @click="accent='<?= $hex ?>'"
+                            class="w-9 h-9 rounded-full border-2 transition-all flex items-center justify-center"
+                            :class="accent === '<?= $hex ?>' ? 'border-white scale-110 shadow-lg' : 'border-white/20 hover:border-white/50'"
+                            style="background:<?= $hex ?>" :title="'<?= $label ?>'">
+                        <svg x-show="accent === '<?= $hex ?>'" class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                    </button>
+                <?php endforeach; ?>
+                <label class="flex items-center gap-2 ml-2 cursor-pointer">
+                    <input type="color" :value="accent" @input="accent=$event.target.value" class="w-9 h-9 rounded-lg bg-transparent border border-white/20 cursor-pointer">
+                    <span class="text-xs text-slate-400">Custom</span>
+                </label>
+            </div>
+            <!-- Live accent preview -->
+            <div class="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3" x-data>
+                <div class="rounded-xl px-4 py-3 text-white text-sm font-semibold flex items-center justify-center transition-all" style="background:var(--a-500)">Save Button</div>
+                <div class="rounded-xl px-4 py-3 text-sm font-semibold transition-all" style="background:color-mix(in srgb, var(--a-500) 14%, transparent);color:var(--a-400)">Active Badge</div>
+                <div class="rounded-xl px-4 py-3 text-sm transition-all" style="border:1px solid color-mix(in srgb, var(--a-500) 50%, transparent);color:var(--a-400)">Focused Input</div>
+                <div class="rounded-xl px-4 py-3 text-sm transition-all" style="color:var(--a-400)">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full mr-1.5" style="background:var(--a-400)"></span>Live Status
+                </div>
+            </div>
+            <div class="mt-6 flex items-center justify-between">
+                <p class="text-xs text-slate-500">Theme preference is stored on your account.</p>
+            </div>
+            <div class="mt-3" x-data="{ pref: '<?= e($userTheme ?? 'dark') ?>' }">
+                <p class="text-xs font-medium text-slate-400 mb-2">Theme mode</p>
+                <div class="inline-flex rounded-xl bg-ink-800 border border-white/10 p-1">
+                    <?php foreach (['dark' => '🌙 Dark', 'light' => '☀️ Light', 'auto' => '🔄 Auto'] as $val => $label): ?>
+                        <button type="button" @click="pref='<?= $val ?>'; apiPost('/theme',{theme: pref}).then(()=>{ location.reload(); })"
+                                :class="pref === '<?= $val ?>' ? 'bg-emerald-500 text-white' : 'text-slate-400 hover:text-white'"
+                                class="px-4 py-1.5 text-xs font-semibold rounded-lg transition">
+                            <?= $label ?>
+                        </button>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <div class="mt-6 flex items-center justify-between">
+                <button type="submit" class="btn-primary">Save Appearance</button>
+                <a href="/settings" class="text-xs text-slate-500 hover:text-slate-300">Reset</a>
+            </div>
+        </form>
+    </div>
+
     <!-- Database backups -->
     <div class="card p-5 sm:p-6" id="backups">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
@@ -222,6 +304,77 @@
                 </tbody>
             </table>
         </div>
+    </div>
+
+    <!-- Roles & permissions -->
+    <?php
+        $editableRoles = ['eco', 'counter', 'staff', 'auditor'];
+        $roleMap = [];
+        foreach ($rolePerms as $rp) {
+            $roleMap[$rp['role']][] = (int) $rp['permission_id'];
+        }
+        $permByName = [];
+        foreach ($permissions as $p) {
+            $permByName[$p['name']] = $p;
+        }
+        $grouped = [];
+        foreach ($permissions as $p) {
+            $domain = explode('.', $p['name'])[0];
+            $grouped[$domain][] = $p;
+        }
+    ?>
+    <div class="card p-5 sm:p-6" id="roles">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-1">
+            <div>
+                <h2 class="text-lg font-semibold text-white">Roles &amp; Permissions</h2>
+                <p class="text-sm text-slate-400 mt-1">Tick what each role can do. <strong class="text-slate-300">Owner &amp; Admin</strong> always keep full access (locked).</p>
+            </div>
+        </div>
+        <form method="POST" action="<?= e(url('/settings/roles')) ?>">
+            <?= csrf_field() ?>
+            <div class="overflow-x-auto mt-5">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="min-w-[200px]">Permission</th>
+                            <?php foreach ($editableRoles as $r): ?>
+                                <th class="text-center min-w-[90px]"><?= ucfirst($r) ?></th>
+                            <?php endforeach; ?>
+                            <th class="text-center text-slate-600 min-w-[90px]">Owner / Admin</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($grouped as $domain => $perms): ?>
+                        <tr>
+                            <td colspan="6" class="px-4 pt-4 pb-1 text-[10px] font-bold uppercase tracking-widest text-emerald-400/80 bg-transparent"><?= e($domain) ?></td>
+                        </tr>
+                        <?php foreach ($perms as $p): ?>
+                            <tr>
+                                <td>
+                                    <div class="text-slate-200 font-medium"><?= e($p['name']) ?></div>
+                                    <div class="text-xs text-slate-500"><?= e($p['description'] ?? '') ?></div>
+                                </td>
+                                <?php foreach ($editableRoles as $r): ?>
+                                    <td class="text-center">
+                                        <label class="inline-flex items-center justify-center cursor-pointer">
+                                            <input type="checkbox" name="perms[<?= $r ?>][]" value="<?= e($p['name']) ?>"
+                                                   class="w-4 h-4 rounded accent-emerald-500"
+                                                   <?= in_array((int) $p['id'], $roleMap[$r] ?? [], true) ? 'checked' : '' ?>>
+                                        </label>
+                                    </td>
+                                <?php endforeach; ?>
+                                <td class="text-center"><span class="text-slate-600">🔒</span></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-5 flex items-center justify-between">
+                <p class="text-xs text-slate-500">Changes are audited and can be reverted from this screen anytime.</p>
+                <button type="submit" class="btn-primary">Save Permissions</button>
+            </div>
+        </form>
     </div>
 
 </div>

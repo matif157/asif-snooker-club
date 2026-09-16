@@ -90,6 +90,8 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    const _aHex = getComputedStyle(document.documentElement).getPropertyValue('--a-500').trim() || '#10b981';
+    const _aRgb = (al) => { const n = (_aHex.match(/[0-9a-f]{2}/gi) || ['10','b9','81']).map(x => parseInt(x, 16)); return `rgba(${n[0]},${n[1]},${n[2]},${al})`; };
     const hours = <?= json_encode(array_values($byHour)) ?>;
     const hoursCtx = document.getElementById('hoursChart');
     if (hoursCtx) {
@@ -100,8 +102,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 datasets: [{
                     label: 'Revenue',
                     data: hours,
-                    borderColor: '#10b981',
-                    backgroundColor: 'rgba(16,185,129,0.15)',
+                    borderColor: _aHex,
+                    backgroundColor: _aRgb(0.15),
                     fill: true,
                     tension: 0.35,
                     pointRadius: 2,
@@ -133,8 +135,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 datasets: [{
                     label: 'Revenue',
                     data: trend.map(t => t.revenue),
-                    backgroundColor: 'rgba(16,185,129,0.5)',
-                    borderColor: '#10b981',
+                    backgroundColor: _aRgb(0.5),
+                    borderColor: _aHex,
                     borderWidth: 1,
                     borderRadius: 4
                 }]

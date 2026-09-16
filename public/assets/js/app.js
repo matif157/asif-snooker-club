@@ -1,14 +1,17 @@
 /* ASIF SNOOKER CLUB — Client-side JS */
 
-// Theme toggle
+// Theme toggle (persists per user on the server)
 document.addEventListener('DOMContentLoaded', () => {
     const toggle = document.getElementById('themeToggle');
     if (toggle) {
-        toggle.addEventListener('click', () => {
+        toggle.addEventListener('click', async () => {
             const html = document.documentElement;
-            const isDark = html.classList.contains('dark');
-            html.classList.toggle('dark');
-            localStorage.setItem('theme', isDark ? 'light' : 'dark');
+            const next = html.classList.contains('dark') ? 'light' : 'dark';
+            html.classList.toggle('dark', next === 'dark');
+            html.dataset.theme = next;
+            try {
+                await apiPost('/theme', { theme: next });
+            } catch (e) {}
         });
     }
 });

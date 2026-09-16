@@ -5,11 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Member Portal — Asif Snooker Club</title>
+    <?= App\Services\ThemeService::cssVars() ?>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
-            theme: { extend: { colors: { ink: {900:'#0b0e14',850:'#0f131c',800:'#131824',750:'#171d2b',700:'#1b2233',600:'#232b3d'} } } }
+            theme: { extend: { colors: { ink: {900:'#0b0e14',850:'#0f131c',800:'#131824',750:'#171d2b',700:'#1b2233',600:'#232b3d'}, emerald: {<?= App\Services\ThemeService::emeraldMapping() ?>} } } }
         };
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">

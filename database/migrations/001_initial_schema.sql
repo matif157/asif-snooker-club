@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash VARCHAR(255) NOT NULL,
     role          ENUM('owner','admin','eco','counter','staff','auditor') NOT NULL DEFAULT 'staff',
     status        ENUM('active','inactive') NOT NULL DEFAULT 'active',
+    theme         ENUM('dark','light','auto') NOT NULL DEFAULT 'dark',
     remember_token VARCHAR(100) DEFAULT NULL,
     last_login_at DATETIME DEFAULT NULL,
     created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

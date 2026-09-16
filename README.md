@@ -26,8 +26,9 @@ D Ground, Faisalabad. Digitizes the handwritten daily register into a real-time 
 - **Automated backups** — CLI `database/backup.php` + in-app backup manager (download/restore-ready SQL dumps, keeps last 20)
 - **Notifications bell** — live alerts for full tables, today's bookings, unpaid sessions
 - **Real-time updates** — live dashboard chart (real data), lightweight AJAX polling (shared-hosting friendly) + optional SSE endpoints
-- **RBAC** — Owner, Admin, ECO, Counter, Staff, Auditor roles with granular permissions
-- **Premium dark UI** — emerald/gold accents, responsive mobile sidebar, light/dark theme toggle
+- **RBAC** — Owner, Admin, ECO, Counter, Staff, Auditor roles with granular permissions, editable per-role permission matrix (Owner/Admin locked full-access)
+- **Visual customizer** — club accent colour (swatches + custom picker) flows through buttons, badges, nav, charts; per-user **Dark / Light / Auto** theme persisted server-side
+- **Premium dark UI** — responsive sidebar, notifications bell, snooker-branded login (D Ground, Faisalabad)
 
 ## Requirements
 
@@ -121,6 +122,21 @@ Configured under **Settings → Pricing & Peak Hours**:
 - Sessions started with `rate_type = hourly` inside a band auto-bill at the band rate; manual rates (frame/VIP/custom) are always respected.
 - The live rate band and resulting rate can be previewed right inside the settings page.
 
+## Customization — Roles & Themes
+
+**Roles & Permissions** — Settings → Roles & Permissions. Every non-superuser role
+(ECO, Counter, Staff, Auditor) has a full checkbox matrix over all 18 permissions
+(e.g. `tables.manage`, `reports.view`, `settings.manage`). Save is transactional and
+audited; **Owner & Admin always bypass the matrix (full access)** so you can't lock
+yourself out. The current user's own `settings.manage` is force-kept.
+
+**Themes** — Settings → Appearance:
+- **Accent colour**: pick a preset (Emerald, Baize, Violet, Sky, Rose, Gold) or a custom
+  colour. It is stored in `settings.accent_color` and drives the whole `emerald` palette
+  (buttons, badges, nav, focus rings, charts) via CSS variables — no page refresh needed.
+- **Theme mode**: per-user **Dark / Light / Auto** (Auto follows the OS), persisted on
+  the user's account via `POST /theme`. The header toggle switches and saves instantly.
+
 ## Customer Portal
 
 Point members to `/portal` (no login needed): they enter the phone number they registered
@@ -145,8 +161,8 @@ point the domain at `public/`.
 
 - [x] Phase 1: Auth, Tables, Customers, Sessions, Bookings, Payments, Dashboard
 - [x] Phase 2 (core): Expenses, Finance, Staff-ready RBAC, Reports (basic)
-- [ ] Phase 3: Customer portal, notifications, theme manager, custom fields
-- [ ] Phase 4: CCTV integration (RTSP → WebRTC), advanced analytics
+- [x] Phase 3: Customer portal, notifications bell, theme manager (accent + per-user theme), role-permission manager
+- [ ] Phase 4: CCTV integration (RTSP → WebRTC), advanced analytics, custom fields
 - [ ] Phase 5: Installer wizard, backup/restore, multi-club readiness
 
 ## License

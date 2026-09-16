@@ -311,6 +311,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const ctx = document.getElementById('revenueChart');
     if (!ctx) return;
 
+    const _aHex = getComputedStyle(document.documentElement).getPropertyValue('--a-500').trim() || '#10b981';
+    const _aRgb = (al) => { const n = (_aHex.match(/[0-9a-f]{2}/gi) || ['10','b9','81']).map(x => parseInt(x, 16)); return `rgba(${n[0]},${n[1]},${n[2]},${al})`; };
     const chart = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -319,8 +321,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 {
                     label: 'Revenue',
                     data: [],
-                    backgroundColor: 'rgba(16,185,129,0.5)',
-                    borderColor: '#10b981',
+                    backgroundColor: _aRgb(0.5),
+                    borderColor: _aHex,
                     borderWidth: 1,
                     borderRadius: 6,
                     barPercentage: 0.6

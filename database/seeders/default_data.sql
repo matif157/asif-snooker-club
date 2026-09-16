@@ -70,7 +70,8 @@ INSERT INTO settings (`key`, value, `group`) VALUES
 ('night_start',          '00:00',               'pricing'),
 ('night_end',            '06:00',               'pricing'),
 ('whatsapp_template',    'Assalam o Alaikum {name}! Thank you for visiting Asif Snooker Club.', 'notifications'),
-('close_table_bookings', '0',                   'bookings');
+('close_table_bookings', '0',                   'bookings'),
+('accent_color',         '#10b981',             'appearance');
 
 -- Default tables (club starts clean; comment out if you prefer to add via UI)
 INSERT INTO tables (number, name, type, hourly_rate, min_charge, status, sort_order) VALUES

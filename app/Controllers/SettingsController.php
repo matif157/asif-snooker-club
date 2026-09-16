@@ -27,11 +27,77 @@ class SettingsController extends Controller
         $backups = BackupService::list();
 
         $this->view('settings/index', [
-            'settings' => $settings,
-            'users'    => $users,
-            'audit'    => $audit,
-            'backups'  => $backups,
+            'settings'    => $settings,
+            'users'       => $users,
+            'audit'       => $audit,
+            'backups'     => $backups,
+            'permissions' => \App\Core\Database::query('SELECT id, name, description FROM permissions ORDER BY name ASC'),
+            'rolePerms'   => \App\Core\Database::query('SELECT role, permission_id FROM role_permissions'),
+            'userTheme'   => \App\Services\ThemeService::userTheme(),
         ]);
+    }
+
+    /**
+     * Persist the granular permission matrix for non-superuser roles.
+     */
+    public function updateRoles(): void
+    {
+        if (!user_can('settings.manage')) {
+            $this->error('You do not have permission to manage settings.', 403);
+        }
+
+        if (!Request::csrf()) {
+            Response::redirect('/settings');
+        }
+
+        $allowedRoles = ['eco', 'counter', 'staff', 'auditor'];
+        $posted = Request::all();
+
+        // Force-keep "settings.manage" on the current user's own role so an
+        // operator can never lock themselves (or the club) out of Settings.
+        $selfRole = current_user()?->role;
+        if (in_array($selfRole, $allowedRoles, true)) {
+            $posted['perms'][$selfRole][] = 'settings.manage';
+        }
+
+        $validNames = array_column(
+            \App\Core\Database::query('SELECT name FROM permissions'),
+            'name'
+        );
+
+        $db = \App\Core\Database::connection();
+        $db->beginTransaction();
+        try {
+            foreach ($allowedRoles as $role) {
+                $names = array_values(array_unique((array) ($posted['perms'][$role] ?? [])));
+                $names = array_values(array_intersect($validNames, $names));
+
+                // Owner/admin keep full access via the code-level bypass;
+                // their stored rows are never touched here.
+                if (in_array($role, ['owner', 'admin'], true)) {
+                    continue;
+                }
+
+                \App\Core\Database::execute('DELETE FROM role_permissions WHERE role = ?', [$role]);
+                foreach ($names as $name) {
+                    \App\Core\Database::execute(
+                        'INSERT INTO role_permissions (role, permission_id)
+                         SELECT ?, id FROM permissions WHERE name = ?',
+                        [$role, $name]
+                    );
+                }
+            }
+            $db->commit();
+        } catch (\Throwable $e) {
+            $db->rollBack();
+            flash('error', 'Could not save roles: ' . $e->getMessage());
+            Response::redirect('/settings#roles');
+        }
+
+        AuditService::log('role_permissions_updated', 'role', null, null, $posted);
+
+        flash('success', 'Role permissions updated.');
+        Response::redirect('/settings#roles');
     }
 
     public function backup(): void
@@ -80,13 +146,21 @@ class SettingsController extends Controller
             'default_hourly_rate', 'default_min_charge', 'whatsapp_template',
             'peak_enabled', 'peak_start', 'peak_end', 'peak_rate_multiplier',
             'night_start', 'night_end',
+            'accent_color',
         ];
 
         foreach ($allowed as $key) {
-            if (Request::has($key)) {
-                $value = Request::post($key, '');
-                SettingsService::set($key, trim((string) $value));
+            if (!Request::has($key)) {
+                continue;
             }
+            $value = Request::post($key, '');
+            $value = trim((string) $value);
+
+            if ($key === 'accent_color' && !preg_match('/^#[0-9a-fA-F]{6}$/', $value)) {
+                continue;
+            }
+
+            SettingsService::set($key, $value);
         }
 
         AuditService::log('settings_updated', 'settings', null, null, $allowed);
@@ -116,6 +190,29 @@ class SettingsController extends Controller
         AuditService::log('user_updated', 'user', $user->id, null, $data);
 
         Response::redirect('/settings');
+    }
+
+    /**
+     * Persist the current user's theme preference (dark / light / auto).
+     */
+    public function theme(): void
+    {
+        $user = current_user();
+        if (!$user) {
+            $this->error('Unauthenticated.', 401);
+        }
+
+        $theme = Request::post('theme', 'dark');
+        if (!in_array($theme, ['dark', 'light', 'auto'], true)) {
+            $this->error('Invalid theme.', 422);
+        }
+
+        \App\Core\Database::execute(
+            'UPDATE users SET theme = ? WHERE id = ?',
+            [$theme, (int) $user->id]
+        );
+
+        $this->success(['theme' => $theme], 'Theme updated.');
     }
 
     public function createUser(): void

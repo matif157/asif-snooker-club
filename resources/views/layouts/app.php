@@ -10,9 +10,8 @@ $currentPage = basename($_SERVER['REQUEST_URI'] ?? '/');
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e(config('app.name', 'ASIF SNOOKER CLUB')) ?></title>
     <meta name="csrf-token" content="<?= e(csrf_token()) ?>">
-    <script>
-        if (localStorage.getItem('theme') === 'light') { document.documentElement.classList.remove('dark'); }
-    </script>
+    <?= App\Services\ThemeService::themeBoot(App\Services\ThemeService::userTheme()) ?>
+    <?= App\Services\ThemeService::cssVars() ?>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -21,6 +20,8 @@ $currentPage = basename($_SERVER['REQUEST_URI'] ?? '/');
                 extend: {
                     colors: {
                         ink: {900:'#0b0e14',850:'#0f131c',800:'#131824',750:'#171d2b',700:'#1b2233',600:'#232b3d'},
+                        emerald: {<?= App\Services\ThemeService::emeraldMapping() ?>},
+                        gold: {400:'#fbbf24', 500:'#f59e0b'}
                     },
                     fontFamily: {sans:['Inter','Manrope','system-ui','sans-serif']}
                 }
@@ -31,6 +32,7 @@ $currentPage = basename($_SERVER['REQUEST_URI'] ?? '/');
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="/assets/css/app.css">
 </head>
 <body class="bg-ink-900 text-slate-200 min-h-screen font-sans antialiased">
