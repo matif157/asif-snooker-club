@@ -11,6 +11,7 @@ use App\Core\Response;
 use App\Models\Table as TableModel;
 use App\Models\Customer;
 use App\Models\ClubSession;
+use App\Services\CsvService;
 
 class SessionController extends Controller
 {
@@ -25,6 +26,57 @@ class SessionController extends Controller
         $tableId = (int) ($_GET['table_id'] ?? 0);
         $status  = $_GET['status'] ?? '';
 
+        $sessions = $this->querySessions($from, $to, $tableId, $status, 500);
+
+        $this->view('sessions/index', [
+            'sessions'  => $sessions,
+            'tables'    => TableModel::all(),
+            'from'      => $from,
+            'to'        => $to,
+            'tableId'   => $tableId,
+            'status'    => $status,
+        ]);
+    }
+
+    public function export(): void
+    {
+        if (!user_can('sessions.view')) {
+            $this->error('You do not have permission to export sessions.', 403);
+        }
+
+        $from    = $_GET['from'] ?? date('Y-m-d', strtotime('-30 days'));
+        $to      = $_GET['to'] ?? date('Y-m-d');
+        $tableId = (int) ($_GET['table_id'] ?? 0);
+        $status  = $_GET['status'] ?? '';
+
+        $rows = $this->querySessions($from, $to, $tableId, $status, 10000);
+
+        CsvService::sendHeaders('sessions-' . $from . '-to-' . $to . '.csv');
+        CsvService::download('', [
+            'id'               => '#',
+            'date'             => 'Date',
+            'start_time'       => 'Start',
+            'end_time'         => 'End',
+            'duration_minutes' => 'Duration (min)',
+            'table_number'     => 'Table No',
+            'table_name'       => 'Table Name',
+            'customer_name'    => 'Customer',
+            'players_count'    => 'Players',
+            'staff_name'       => 'Staff',
+            'rate'             => 'Rate (Rs/hr)',
+            'discount'         => 'Discount',
+            'extra_charges'    => 'Extras',
+            'amount'           => 'Amount',
+            'payment_status'   => 'Payment Status',
+            'payment_method'   => 'Method',
+            'notes'            => 'Notes',
+        ], $rows, [
+            'date' => fn($r) => date('Y-m-d', strtotime($r['start_time'])),
+        ]);
+    }
+
+    private function querySessions(string $from, string $to, int $tableId, string $status, int $limit): array
+    {
         $where = [
             "DATE(s.start_time) BETWEEN ? AND ?",
             "s.status = 'completed'",
@@ -40,7 +92,7 @@ class SessionController extends Controller
             $params[] = $status;
         }
 
-        $sessions = Database::query(
+        return Database::query(
             "SELECT s.*,
                     t.number AS table_number,
                     t.name AS table_name,
@@ -52,18 +104,9 @@ class SessionController extends Controller
              LEFT JOIN users u ON u.id = s.staff_id
              WHERE " . implode(' AND ', $where) . "
              ORDER BY s.id DESC
-             LIMIT 500",
+             LIMIT {$limit}",
             $params
         );
-
-        $this->view('sessions/index', [
-            'sessions'  => $sessions,
-            'tables'    => TableModel::all(),
-            'from'      => $from,
-            'to'        => $to,
-            'tableId'   => $tableId,
-            'status'    => $status,
-        ]);
     }
 
     public function active(): void

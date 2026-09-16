@@ -11,12 +11,18 @@ $totalToday = array_sum(array_column($todayRev, 'total'));
             <h1 class="text-xl sm:text-2xl font-bold text-white tracking-tight">Payments</h1>
             <p class="text-sm text-slate-400 mt-1">Revenue, transactions, and outstanding balances</p>
         </div>
-        <?php if (user_can('payments.manage')): ?>
-        <button @click="showPaymentModal = true" class="btn-primary">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-            Record Payment
-        </button>
-        <?php endif; ?>
+        <div class="flex items-center gap-2 flex-wrap">
+            <a href="<?= e(url('/payments/export')) ?>" class="btn-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                Export CSV
+            </a>
+            <?php if (user_can('payments.manage')): ?>
+            <button @click="showPaymentModal = true" class="btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                Record Payment
+            </button>
+            <?php endif; ?>
+        </div>
     </div>
 
     <!-- Revenue by Method -->

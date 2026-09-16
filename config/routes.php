@@ -54,6 +54,7 @@ $router->post('/customers/{id}', [CustomerController::class, 'update']);
 
 // Sessions
 $router->get('/sessions', [SessionController::class, 'index']);
+$router->get('/sessions/export', [SessionController::class, 'export']);
 $router->get('/sessions/active', [SessionController::class, 'active']);
 $router->post('/sessions', [SessionController::class, 'store']);
 $router->get('/sessions/{id}', [SessionController::class, 'show']);
@@ -63,6 +64,7 @@ $router->post('/sessions/{id}/logout', [SessionController::class, 'logout']);
 
 // Bookings
 $router->get('/bookings', [BookingController::class, 'index']);
+$router->get('/bookings/export', [BookingController::class, 'export']);
 $router->get('/bookings/calendar', [BookingController::class, 'calendar']);
 $router->post('/bookings', [BookingController::class, 'store']);
 $router->post('/bookings/{id}/status', [BookingController::class, 'updateStatus']);
@@ -70,11 +72,13 @@ $router->post('/bookings/{id}/payment', [BookingController::class, 'pay']);
 
 // Payments
 $router->get('/payments', [PaymentController::class, 'index']);
+$router->get('/payments/export', [PaymentController::class, 'export']);
 $router->post('/payments', [PaymentController::class, 'store']);
 $router->get('/payments/{id}/receipt', [PaymentController::class, 'receipt']);
 
 // Expenses
 $router->get('/expenses', [ExpenseController::class, 'index']);
+$router->get('/expenses/export', [ExpenseController::class, 'export']);
 $router->post('/expenses', [ExpenseController::class, 'store']);
 $router->post('/expenses/{id}/status', [ExpenseController::class, 'setStatus']);
 

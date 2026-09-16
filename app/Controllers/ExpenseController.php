@@ -8,6 +8,7 @@ use App\Core\Controller;
 use App\Core\Request;
 use App\Core\Response;
 use App\Models\Expense;
+use App\Services\CsvService;
 
 class ExpenseController extends Controller
 {
@@ -35,6 +36,32 @@ class ExpenseController extends Controller
             'byCategory'  => $byCategory,
             'from'        => $from,
             'to'          => $to,
+        ]);
+    }
+
+    public function export(): void
+    {
+        if (!user_can('expenses.view')) {
+            $this->error('You do not have permission to export expenses.', 403);
+        }
+
+        $from = Request::get('from', date('Y-m-01'));
+        $to   = Request::get('to', date('Y-m-d'));
+
+        $rows = Expense::forRange($from, $to);
+
+        CsvService::sendHeaders('expenses-' . $from . '-to-' . $to . '.csv');
+        CsvService::download('', [
+            'id'           => '#',
+            'expense_date' => 'Date',
+            'category'     => 'Category',
+            'vendor'       => 'Vendor',
+            'description'  => 'Description',
+            'amount'       => 'Amount',
+            'status'       => 'Status',
+            'notes'        => 'Notes',
+        ], $rows, [
+            'status' => fn($r) => ucfirst((string) $r['status']),
         ]);
     }
 

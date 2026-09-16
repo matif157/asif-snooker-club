@@ -10,6 +10,7 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Models\Booking;
 use App\Models\Table as TableModel;
+use App\Services\CsvService;
 
 class BookingController extends Controller
 {
@@ -48,6 +49,56 @@ class BookingController extends Controller
             'upcoming'  => $upcoming,
             'bookingsPaid' => $bookingsPaid,
             'selectedDate' => $date,
+        ]);
+    }
+
+    public function export(): void
+    {
+        if (!user_can('bookings.view')) {
+            $this->error('You do not have permission to export bookings.', 403);
+        }
+
+        Booking::expirePast();
+
+        $from = Request::get('from', Request::get('date', date('Y-m-d')));
+        $to   = Request::get('to', $from);
+
+        $rows = Database::query(
+            "SELECT b.*,
+                    t.number AS table_number,
+                    t.name AS table_name,
+                    COALESCE(c.name, b.customer_name) AS customer_name,
+                    COALESCE(c.phone, b.customer_phone) AS customer_phone,
+                    COALESCE(SUM(p.amount), 0) AS advance_paid
+             FROM bookings b
+             JOIN tables t ON t.id = b.table_id
+             LEFT JOIN customers c ON c.id = b.customer_id
+             LEFT JOIN payments p ON p.booking_id = b.id AND p.status = 'paid'
+             WHERE b.booking_date BETWEEN ? AND ?
+             GROUP BY b.id
+             ORDER BY b.booking_date DESC, b.start_time ASC",
+            [$from, $to]
+        );
+
+        CsvService::sendHeaders('bookings-' . $from . '-to-' . $to . '.csv');
+        CsvService::download('', [
+            'id'             => '#',
+            'booking_date'   => 'Date',
+            'start_time'     => 'From',
+            'end_time'       => 'To',
+            'table_number'   => 'Table No',
+            'table_name'     => 'Table Name',
+            'customer_name'  => 'Customer',
+            'customer_phone' => 'Phone',
+            'players_count'  => 'Players',
+            'status'         => 'Status',
+            'advance_paid'   => 'Advance Paid',
+            'source'         => 'Source',
+            'notes'          => 'Notes',
+        ], $rows, [
+            'source'    => fn($r) => ($r['created_by'] ?? null) === null ? 'Member Portal' : 'Staff',
+            'status'    => fn($r) => ucfirst((string) $r['status']),
+            'advance_paid' => fn($r) => (float) $r['advance_paid'],
         ]);
     }
 

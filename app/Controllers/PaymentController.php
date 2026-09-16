@@ -11,6 +11,7 @@ use App\Core\Response;
 use App\Models\ClubSession;
 use App\Models\Payment;
 use App\Models\Customer;
+use App\Services\CsvService;
 use App\Services\SettingsService;
 
 class PaymentController extends Controller
@@ -29,6 +30,47 @@ class PaymentController extends Controller
             'payments'    => $payments,
             'outstanding' => $outstanding,
             'todayRev'    => $todayRev,
+        ]);
+    }
+
+    public function export(): void
+    {
+        if (!user_can('payments.view')) {
+            $this->error('You do not have permission to export payments.', 403);
+        }
+
+        $rows = Database::query(
+            "SELECT p.*,
+                    c.name AS customer_name,
+                    t.number AS table_number,
+                    u.name AS acceptor_name
+             FROM payments p
+             LEFT JOIN customers c ON c.id = p.customer_id
+             LEFT JOIN sessions s ON s.id = p.session_id
+             LEFT JOIN tables t ON t.id = s.table_id
+             LEFT JOIN users u ON u.id = p.accepted_by
+             ORDER BY p.id DESC
+             LIMIT 10000"
+        );
+
+        CsvService::sendHeaders('payments-' . date('Y-m-d') . '.csv');
+        CsvService::download('', [
+            'id'              => '#',
+            'paid_at'         => 'Date/Time',
+            'customer_name'   => 'Customer',
+            'session_id'      => 'Session ID',
+            'booking_id'      => 'Booking ID',
+            'table_number'    => 'Table',
+            'amount'          => 'Amount',
+            'method'          => 'Method',
+            'transaction_ref' => 'Transaction Ref',
+            'status'          => 'Status',
+            'acceptor_name'   => 'Accepted By',
+            'notes'           => 'Notes',
+        ], $rows, [
+            'paid_at' => fn($r) => date('Y-m-d H:i', strtotime((string) ($r['paid_at'] ?? $r['created_at']))),
+            'method'  => fn($r) => strtoupper((string) $r['method']),
+            'status'  => fn($r) => ucfirst((string) $r['status']),
         ]);
     }
 

@@ -24,6 +24,7 @@ D Ground, Faisalabad. Digitizes the handwritten daily register into a real-time 
 - **Follow-up & Recovery center** — outstanding customers + missed bookings with one-tap WhatsApp reminders
 - **Audit log** — full action history (expense approvals, payments, sessions, etc.) with filters
 - **WhatsApp Broadcast center** — audience-targeted (active / outstanding / recent / VIP) message previews with personalized links & copy-all
+- **Export/Import toolkit** — one-click **CSV downloads** for sessions, bookings (single day or any date range), payments and expenses (respecting each page's active filters); customer CSV import/export and full SQL backup/restore round out data portability
 - **P&L report** — monthly revenue vs expenses, net profit, daily chart, method/category breakdowns + WhatsApp share
 - **Customer self-service portal** (`/portal`) — PIN-protected member dashboard: balance, **table booking requests**, upcoming bookings, recent sessions and payments
 - **Automated backups** — CLI `database/backup.php` + in-app backup manager (download/restore-ready SQL dumps, keeps last 20)
@@ -115,6 +116,17 @@ php database/backup.php        # writes storage/backups/backup-YYYYMMDD-HHiiss.s
 # Settings → "Create Backup Now" downloads the latest dump.
 # Backups are excluded from git.
 ```
+
+## Export / Import
+
+- **Export CSV** appears on the Sessions, Bookings, Payments and Expenses pages and
+  downloads exactly the currently-filtered data (sessions honour from/to/table/payment
+  filters, expenses honour the month range, bookings default to the viewed day and accept
+  `from`/`to` for a range). Files are UTF-8 (BOM) so they open correctly in Excel/Google
+  Sheets, and are permission-gated by the same module permissions as viewing.
+- **Import** customers from CSV from the Customers page (Name, Phone, WhatsApp, Email,
+  Category, Notes columns).
+- **Full backups**: `database/backup.php` or Settings → Backup (SQL dump download + restore).
 
 ## Peak / Night Pricing
 
