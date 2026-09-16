@@ -240,7 +240,7 @@ $db->exec("INSERT INTO settings (`key`, `value`, `group`) VALUES ('cctv_stream_m
 // Expense budgets (only when not already configured)
 $demoBudgets = json_encode([
     'rent'         => 45000,
-    'electricity'  => 3000,
+    'electricity'  => 2000,
     'refreshments' => 2500,
     'maintenance'  => 2000,
     'supplies'     => 1000,

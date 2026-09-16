@@ -12,6 +12,7 @@ use App\Models\ClubSession;
 use App\Models\Expense;
 use App\Models\Payment;
 use App\Models\Table as TableModel;
+use App\Services\SettingsService;
 
 class DashboardController extends Controller
 {
@@ -163,6 +164,22 @@ class DashboardController extends Controller
             $tableCameras[(int) $row['table_id']] = $row;
         }
 
+        // Over-budget expense categories this month (approved-only vs budget)
+        $budgetSpendByCat = [];
+        foreach (Expense::forRange(date('Y-m-01'), date('Y-m-d')) as $exp) {
+            if (($exp['status'] ?? 'approved') === 'approved') {
+                $cat = $exp['category'];
+                $budgetSpendByCat[$cat] = ($budgetSpendByCat[$cat] ?? 0) + (float) $exp['amount'];
+            }
+        }
+        $monthOverBudget = [];
+        foreach (SettingsService::expenseBudgets() as $cat => $budget) {
+            $spent = (float) ($budgetSpendByCat[$cat] ?? 0);
+            if ($spent > $budget) {
+                $monthOverBudget[$cat] = ['spent' => $spent, 'budget' => $budget];
+            }
+        }
+
         $pct = fn(float $cur, float $prev): int => $prev > 0
             ? (int) round(($cur - $prev) / $prev * 100)
             : ($cur > 0 ? 100 : 0);
@@ -197,6 +214,7 @@ class DashboardController extends Controller
             'arrivingSoon'        => $arrivingSoon,
             'maintenanceCount'    => $maintenanceCount,
             'pendingBookings'     => $pendingBookings,
+            'monthOverBudget'     => $monthOverBudget,
             'tableCameras'        => $tableCameras,
         ]);
     }

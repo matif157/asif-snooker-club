@@ -4,6 +4,7 @@
 /** @var int $yesterdaySessions, $weekSessions, $revenueDelta, $sessionsDelta, $weekRevenueDelta, $weekSessionsDelta */
 /** @var array $outstanding, $upcomingBookings, $recentSessions, $activeSessions, $topTablesToday, $longRunning, $arrivingSoon */
 /** @var int $unpaidToday, $maintenanceCount, $pendingBookings */
+/** @var array $monthOverBudget */
 /** @var float $unpaidTodayTotal */
 /** @var int $longRunMinutes */
 /** @var array $tableCameras */
@@ -281,7 +282,7 @@ if (user_can('customers.manage')) $quickActions[] = ['/customers/create', 'New C
                     <h3 class="text-sm font-semibold text-white uppercase tracking-wider">Needs Attention</h3>
                     <span class="text-xs text-slate-500" id="alert-count"></span>
                 </div>
-                <?php $alertCount = ($unpaidToday > 0 ? 1 : 0) + count($arrivingSoon) + count($longRunning) + ($maintenanceCount > 0 ? 1 : 0) + ($pendingBookings > 0 ? 1 : 0); ?>
+                <?php $alertCount = ($unpaidToday > 0 ? 1 : 0) + count($arrivingSoon) + count($longRunning) + ($maintenanceCount > 0 ? 1 : 0) + ($pendingBookings > 0 ? 1 : 0) + (empty($monthOverBudget) ? 0 : 1); ?>
                 <script>document.getElementById('alert-count').textContent = '<?= $alertCount ?> alert<?= $alertCount === 1 ? '' : 's' ?>';</script>
                 <?php if ($alertCount === 0): ?>
                     <div class="flex flex-col items-center justify-center py-6 text-center">
@@ -315,6 +316,22 @@ if (user_can('customers.manage')) $quickActions[] = ['/customers/create', 'New C
                                     </div>
                                 </div>
                                 <span class="text-xs text-rose-400 font-semibold">Collect →</span>
+                            </a>
+                        <?php endif; ?>
+
+                        <?php if (!empty($monthOverBudget)): ?>
+                            <a href="/expenses" class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/15 transition">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="w-2 h-2 rounded-full bg-rose-400"></span>
+                                    <div>
+                                        <p class="text-xs font-medium text-white">Over budget this month</p>
+                                        <p class="text-[11px] text-slate-500">
+                                            <?php $obFirst = array_key_first($monthOverBudget); $obRow = $monthOverBudget[$obFirst]; ?>
+                                            <?= e(ucfirst(\App\Models\Expense::CATEGORIES[$obFirst] ?? $obFirst)) ?>: Rs <?= number_format($obRow['spent']) ?> / <?= number_format($obRow['budget']) ?><?= count($monthOverBudget) > 1 ? ' +' . (count($monthOverBudget) - 1) . ' more' : '' ?>
+                                        </p>
+                                    </div>
+                                </div>
+                                <span class="text-xs text-rose-400 font-semibold">Review →</span>
                             </a>
                         <?php endif; ?>
 
