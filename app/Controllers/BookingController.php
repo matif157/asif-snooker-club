@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\Controller;
+use App\Core\Database;
 use App\Core\Request;
 use App\Core\Response;
 use App\Models\Booking;
@@ -26,10 +27,26 @@ class BookingController extends Controller
         $tables   = TableModel::activeTables();
         $upcoming = Booking::upcoming(20);
 
+        // Payments attached to today's bookings (advances / desk settlements)
+        $bookingsPaid = [];
+        if ($bookings !== []) {
+            $ids = implode(',', array_map('intval', array_column($bookings, 'id')));
+            $payments = Database::query(
+                "SELECT booking_id, COALESCE(SUM(amount), 0) AS total
+                 FROM payments
+                 WHERE booking_id IN ({$ids}) AND status = 'paid'
+                 GROUP BY booking_id"
+            );
+            foreach ($payments as $p) {
+                $bookingsPaid[(int) $p['booking_id']] = (float) $p['total'];
+            }
+        }
+
         $this->view('bookings/index', [
             'bookings'  => $bookings,
             'tables'    => $tables,
             'upcoming'  => $upcoming,
+            'bookingsPaid' => $bookingsPaid,
             'selectedDate' => $date,
         ]);
     }
@@ -131,9 +148,87 @@ class BookingController extends Controller
             'created_by'     => current_user()?->id ?? null,
         ]);
 
+        $this->recordAdvance($id, $customerId > 0 ? $customerId : null, $data);
+
         if (Request::isAjax()) {
             Response::success(['id' => $id], 'Booking created');
         }
+        Response::redirect('/bookings');
+    }
+
+    /**
+     * Optional advance / deposit taken while creating a booking. Records a
+     * payment row against the booking so it can be settled or topped up later.
+     */
+    private function recordAdvance(int $bookingId, ?int $customerId, array $data): void
+    {
+        $amount = (float) ($data['advance_amount'] ?? 0);
+        if ($amount <= 0) {
+            return;
+        }
+
+        $method = (string) ($data['advance_method'] ?? 'cash');
+        if (!in_array($method, ['cash', 'jazzcash', 'bank_transfer', 'card', 'other'], true)) {
+            return;
+        }
+
+        Database::insert(
+            "INSERT INTO payments (booking_id, customer_id, amount, method, status, transaction_ref, notes, paid_at, accepted_by)
+             VALUES (?, ?, ?, ?, 'paid', ?, ?, NOW(), ?)",
+            [
+                $bookingId,
+                $customerId,
+                $amount,
+                $method,
+                $data['transaction_ref'] ?? null,
+                $data['advance_notes'] ?? 'Advance payment at booking',
+                current_user()?->id ?? null,
+            ]
+        );
+    }
+
+    /**
+     * Record a payment against an existing booking (desk/full settlement later).
+     */
+    public function pay(int $id): void
+    {
+        if (!user_can('payments.manage')) {
+            $this->error('You do not have permission to record payments.', 403);
+        }
+
+        $booking = Booking::find($id);
+        if (!$booking) {
+            Response::error('Booking not found', 404);
+        }
+
+        $amount = (float) (Request::input('amount') ?? 0);
+        $method = (string) (Request::input('method') ?? 'cash');
+
+        if ($amount <= 0) {
+            Response::error('Amount must be greater than zero.');
+        }
+        if (!in_array($method, ['cash', 'jazzcash', 'bank_transfer', 'card', 'other'], true)) {
+            Response::error('Invalid payment method.');
+        }
+
+        Database::insert(
+            "INSERT INTO payments (booking_id, customer_id, amount, method, status, transaction_ref, notes, paid_at, accepted_by)
+             VALUES (?, ?, ?, ?, 'paid', ?, ?, NOW(), ?)",
+            [
+                $id,
+                $booking->customer_id ? (int) $booking->customer_id : null,
+                $amount,
+                $method,
+                Request::input('transaction_ref') ?? null,
+                Request::input('notes') ?? 'Payment for booking',
+                current_user()?->id ?? null,
+            ]
+        );
+
+        if (Request::isAjax()) {
+            Response::success([], 'Payment recorded');
+        }
+        flash('success', 'Payment of Rs ' . number_format($amount) . ' recorded for the booking.');
         Response::redirect('/bookings');
     }
 

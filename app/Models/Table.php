@@ -73,4 +73,17 @@ class Table extends BaseModel
             );
         }
     }
+
+    /**
+     * Cameras linked to a table (enabled ones only), for command-center shortcuts.
+     */
+    public static function camerasByTable(): array
+    {
+        return Database::query(
+            "SELECT table_id, id, name, stream_name
+             FROM cameras
+             WHERE table_id IS NOT NULL AND enabled = 1
+             ORDER BY sort_order ASC, id ASC"
+        );
+    }
 }

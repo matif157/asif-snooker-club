@@ -112,6 +112,12 @@ class CustomerController extends Controller
             'status'   => 'active',
         ]);
 
+        $pin = trim((string) ($data['portal_pin'] ?? ''));
+        if (preg_match('/^\d{4}$/', $pin)) {
+            Customer::setPortalPin($id, $pin);
+            flash('success', 'Customer created with portal PIN — share it with them.');
+        }
+
         if (Request::isAjax()) {
             Response::success(['id' => $id], 'Customer created');
         }
@@ -181,6 +187,12 @@ class CustomerController extends Controller
             'cf_4'     => $data['cf_4'] ?? $customer->cf_4,
             'cf_5'     => $data['cf_5'] ?? $customer->cf_5,
         ]);
+
+        $pin = trim((string) ($data['portal_pin'] ?? ''));
+        if (preg_match('/^\d{4}$/', $pin)) {
+            Customer::setPortalPin($id, $pin);
+            flash('success', 'Portal PIN updated — share the new PIN with the customer.');
+        }
 
         Response::redirect('/customers/' . $id);
     }

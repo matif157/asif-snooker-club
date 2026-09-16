@@ -66,6 +66,7 @@ $router->get('/bookings', [BookingController::class, 'index']);
 $router->get('/bookings/calendar', [BookingController::class, 'calendar']);
 $router->post('/bookings', [BookingController::class, 'store']);
 $router->post('/bookings/{id}/status', [BookingController::class, 'updateStatus']);
+$router->post('/bookings/{id}/payment', [BookingController::class, 'pay']);
 
 // Payments
 $router->get('/payments', [PaymentController::class, 'index']);
@@ -85,11 +86,15 @@ $router->get('/reports/followup', [ReportsController::class, 'followup']);
 $router->get('/reports/audit', [ReportsController::class, 'audit']);
 $router->get('/cctv', [CameraController::class, 'index']);
 $router->post('/cctv', [CameraController::class, 'store']);
+$router->post('/cctv/{id}', [CameraController::class, 'update']);
 $router->post('/cctv/{id}/delete', [CameraController::class, 'destroy']);
 $router->get('/reminders', [ReminderController::class, 'index']);
 
 // Public customer portal
 $router->get('/portal', [PortalController::class, 'index']);
+$router->post('/portal/login', [PortalController::class, 'login']);
+$router->post('/portal/logout', [PortalController::class, 'logout']);
+$router->post('/portal/bookings', [PortalController::class, 'book']);
 
 // Settings & Staff
 $router->get('/settings', [SettingsController::class, 'index']);

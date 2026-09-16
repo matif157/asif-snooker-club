@@ -133,6 +133,41 @@ $customer = $customer ?? null;
                 </p>
             <?php endif; ?>
 
+            <!-- Portal access -->
+            <div class="pt-4 border-t border-white/10">
+                <label class="block text-xs font-medium text-slate-400 mb-1.5">Member Portal Access</label>
+                <?php $hasPin = $customer && !empty($customer['portal_pin']); ?>
+                <p class="text-[11px] text-slate-500 mb-2">
+                    Your customer can sign in at <span class="text-slate-300">/portal</span> with their
+                    phone number and a 4-digit PIN to view their balance and book tables.
+                    <?php if ($hasPin): ?>
+                        Current status: <span class="text-emerald-400 font-semibold">PIN set</span>.
+                    <?php else: ?>
+                        Current status: <span class="text-amber-400 font-semibold">no PIN — portal disabled</span>.
+                    <?php endif; ?>
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+                    <div>
+                        <input type="text" name="portal_pin" inputmode="numeric" pattern="\d{4}" maxlength="4"
+                               value=""
+                               class="w-full bg-ink-850 border border-white/10 rounded-xl text-sm text-white px-4 py-2.5 placeholder-slate-500 focus:ring-2 focus:ring-emerald-500/50 focus:outline-none"
+                               placeholder="<?= $isEdit ? 'New 4-digit PIN (leave blank to keep)' : 'Optional 4-digit PIN (e.g. 1234)' ?>">
+                    </div>
+                    <?php if ($hasPin && !empty($customer['whatsapp'])): ?>
+                        <?php
+                            $pinWaDigits = preg_replace('/\D+/', '', $customer['whatsapp']);
+                            $pinWaText   = 'Salam ' . $customer['name'] . '! Your Asif Snooker Club member portal PIN is ready. Sign in at ' . url('/portal') . ' with your phone number and 4-digit PIN to view your balance and book a table.';
+                        ?>
+                        <a href="https://wa.me/<?= e($pinWaDigits) ?>?text=<?= rawurlencode($pinWaText) ?>"
+                           class="btn-secondary !py-2.5 text-xs" target="_blank" rel="noopener">
+                            Send PIN via WhatsApp
+                        </a>
+                    <?php else: ?>
+                        <p class="text-[11px] text-slate-600">PIN is stored as a secure hash. Set one here, then tell the customer.</p>
+                    <?php endif; ?>
+                </div>
+            </div>
+
             <!-- Actions -->
             <div class="flex items-center gap-3 pt-3">
                 <button type="submit" class="btn-primary">

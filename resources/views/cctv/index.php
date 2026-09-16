@@ -1,5 +1,5 @@
 <?php
-/** @var array $cameras */
+/** @var array $cameras, $tables */
 /** @var bool $canManage */
 /** @var string $serverUrl */
 use App\Controllers\CameraController;
@@ -66,18 +66,32 @@ use App\Controllers\CameraController;
                         <?php endif; ?>
                     </div>
                     <div class="flex items-center justify-between mt-3 px-1">
-                        <div>
+                        <div class="min-w-0">
                             <p class="text-sm font-semibold text-white"><?= e($cam['name']) ?></p>
-                            <p class="text-xs text-slate-500"><?= e($cam['location'] ?? $cam['stream_name'] ?? '—') ?></p>
+                            <p class="text-xs text-slate-500 truncate">
+                                <?= e($cam['location'] ?? $cam['stream_name'] ?? '—') ?>
+                                <?php if (!empty($cam['table_number'])): ?>
+                                    <span class="inline-flex items-center gap-1 ml-1.5 text-emerald-400 font-medium">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                        Table #<?= e($cam['table_number']) ?>
+                                    </span>
+                                <?php endif; ?>
+                            </p>
                         </div>
                         <?php if ($canManage): ?>
-                            <form method="POST" action="<?= e(url('/cctv/' . (int) $cam['id'] . '/delete')) ?>"
-                                  onsubmit="return confirm('Remove this camera?');">
-                                <?= csrf_field() ?>
-                                <button type="submit" class="text-slate-500 hover:text-rose-400 transition p-1" aria-label="Remove">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            <div class="flex items-center gap-1 shrink-0">
+                                <button type="button" onclick="openEditCamera(<?= (int) $cam['id'] ?>)"
+                                        class="text-slate-500 hover:text-sky-400 transition p-1" aria-label="Edit">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 </button>
-                            </form>
+                                <form method="POST" action="<?= e(url('/cctv/' . (int) $cam['id'] . '/delete')) ?>"
+                                      onsubmit="return confirm('Remove this camera?');">
+                                    <?= csrf_field() ?>
+                                    <button type="submit" class="text-slate-500 hover:text-rose-400 transition p-1" aria-label="Remove">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    </button>
+                                </form>
+                            </div>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -140,6 +154,16 @@ use App\Controllers\CameraController;
                 <label class="block text-xs font-medium text-slate-400 mb-1.5">Stream name</label>
                 <input name="stream_name" class="input" placeholder="table01" pattern="[A-Za-z0-9_-]{1,80}">
             </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1.5">Assigned table</label>
+                <select name="table_id" class="input">
+                    <option value="">— None —</option>
+                    <?php foreach ($tables as $t): ?>
+                        <option value="<?= (int) $t['id'] ?>">#<?= (int) $t['number'] ?> — <?= e($t['name']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <p class="text-[11px] text-slate-600 mt-1">Links this camera to a table so the command center can jump to it.</p>
+            </div>
             <label class="flex items-center gap-2 text-sm cursor-pointer pt-1">
                 <input type="checkbox" name="enabled" value="1" checked class="w-4 h-4 rounded accent-emerald-500">
                 <span class="text-slate-300 font-medium">Enabled</span>
@@ -151,4 +175,88 @@ use App\Controllers\CameraController;
         </form>
     </div>
 </div>
+
+<!-- Edit Camera Modal -->
+<div id="editCameraModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" x-cloak>
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeEditCamera()"></div>
+    <div class="relative w-full max-w-md rounded-2xl bg-ink-800 border border-white/10 shadow-2xl p-6 sm:p-7">
+        <h3 class="text-lg font-semibold text-white mb-1">Edit Camera</h3>
+        <p class="text-xs text-slate-500 mb-5">Update stream details or which table this camera watches.</p>
+        <form method="POST" action="" id="editCameraForm" class="space-y-4">
+            <?= csrf_field() ?>
+            <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1.5">Camera name *</label>
+                <input name="name" id="edit-name" required class="input">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1.5">Location</label>
+                <input name="location" id="edit-location" class="input">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1.5">RTSP source (optional)</label>
+                <input name="rtsp_url" id="edit-rtsp" class="input" placeholder="rtsp://user:pass@192.168.1.20:554/stream1">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1.5">Stream name</label>
+                <input name="stream_name" id="edit-stream" class="input" placeholder="table01" pattern="[A-Za-z0-9_-]{1,80}">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1.5">Assigned table</label>
+                <select name="table_id" id="edit-table" class="input">
+                    <option value="">— None —</option>
+                    <?php foreach ($tables as $t): ?>
+                        <option value="<?= (int) $t['id'] ?>">#<?= (int) $t['number'] ?> — <?= e($t['name']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <label class="flex items-center gap-2 text-sm cursor-pointer pt-1">
+                    <input type="checkbox" name="enabled" value="1" id="edit-enabled" checked class="w-4 h-4 rounded accent-emerald-500">
+                    <span class="text-slate-300 font-medium">Enabled</span>
+                </label>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1.5">Sort</label>
+                    <input type="number" name="sort_order" id="edit-sort" min="0" class="input">
+                </div>
+            </div>
+            <div class="flex items-center gap-3 pt-2">
+                <button type="submit" class="btn-primary">Save Changes</button>
+                <button type="button" onclick="closeEditCamera()" class="btn-secondary">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
 <?php endif; ?>
+
+<script>
+<?php if ($canManage): ?>
+const camerasData = <?= json_encode(array_map(fn($c) => [
+    'id'        => (int) $c['id'],
+    'name'      => $c['name'],
+    'location'  => $c['location'] ?? '',
+    'rtsp_url'  => $c['rtsp_url'] ?? '',
+    'stream'    => $c['stream_name'] ?? '',
+    'table_id'  => (int) ($c['table_id'] ?? 0),
+    'enabled'   => (int) $c['enabled'],
+    'sort'      => (int) ($c['sort_order'] ?? 0),
+], $cameras)) ?>;
+
+function openEditCamera(id) {
+    const cam = camerasData.find(c => c.id === id);
+    if (!cam) return;
+    const form = document.getElementById('editCameraForm');
+    form.action = '<?= e(url('/cctv')) ?>/' + id;
+    document.getElementById('edit-name').value = cam.name;
+    document.getElementById('edit-location').value = cam.location;
+    document.getElementById('edit-rtsp').value = cam.rtsp_url;
+    document.getElementById('edit-stream').value = cam.stream;
+    document.getElementById('edit-table').value = String(cam.table_id);
+    document.getElementById('edit-enabled').checked = cam.enabled === 1;
+    document.getElementById('edit-sort').value = cam.sort;
+    document.getElementById('editCameraModal').classList.remove('hidden');
+}
+function closeEditCamera() {
+    document.getElementById('editCameraModal').classList.add('hidden');
+}
+<?php endif; ?>
+</script>

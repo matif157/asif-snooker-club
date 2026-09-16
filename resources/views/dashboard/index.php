@@ -3,9 +3,10 @@
 /** @var float $todayRevenue, $todayExpenses, $estimatedProfit, $yesterdayRevenue, $weekRevenue */
 /** @var int $yesterdaySessions, $weekSessions, $revenueDelta, $sessionsDelta, $weekRevenueDelta, $weekSessionsDelta */
 /** @var array $outstanding, $upcomingBookings, $recentSessions, $activeSessions, $topTablesToday, $longRunning, $arrivingSoon */
-/** @var int $unpaidToday, $maintenanceCount */
+/** @var int $unpaidToday, $maintenanceCount, $pendingBookings */
 /** @var float $unpaidTodayTotal */
 /** @var int $longRunMinutes */
+/** @var array $tableCameras */
 
 $tableCount = count($tables);
 $occupiedCount = count($activeTables);
@@ -196,11 +197,20 @@ if (user_can('customers.manage')) $quickActions[] = ['/customers/create', 'New C
                     };
                     $session = $table['current_session'] ?? null;
                     $elapsed = $table['elapsed_seconds'] ?? 0;
+                    $cam = $tableCameras[(int) $table['id']] ?? null;
                 ?>
                 <a href="/tables" class="table-tile <?= $class ?> block">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-sm font-bold text-white">#<?= e($table['number']) ?></span>
-                        <span class="status-dot flex-shrink-0"></span>
+                        <span class="flex items-center gap-1.5">
+                            <?php if ($cam): ?>
+                                <a href="/cctv" title="<?= e($cam['name']) ?> — live camera"
+                                   class="p-1 rounded-md bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 transition" onclick="event.stopPropagation()">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                </a>
+                            <?php endif; ?>
+                            <span class="status-dot flex-shrink-0"></span>
+                        </span>
                     </div>
                     <p class="text-xs text-slate-400 mb-2"><?= e($table['name']) ?></p>
 
@@ -271,7 +281,7 @@ if (user_can('customers.manage')) $quickActions[] = ['/customers/create', 'New C
                     <h3 class="text-sm font-semibold text-white uppercase tracking-wider">Needs Attention</h3>
                     <span class="text-xs text-slate-500" id="alert-count"></span>
                 </div>
-                <?php $alertCount = ($unpaidToday > 0 ? 1 : 0) + count($arrivingSoon) + count($longRunning) + ($maintenanceCount > 0 ? 1 : 0); ?>
+                <?php $alertCount = ($unpaidToday > 0 ? 1 : 0) + count($arrivingSoon) + count($longRunning) + ($maintenanceCount > 0 ? 1 : 0) + ($pendingBookings > 0 ? 1 : 0); ?>
                 <script>document.getElementById('alert-count').textContent = '<?= $alertCount ?> alert<?= $alertCount === 1 ? '' : 's' ?>';</script>
                 <?php if ($alertCount === 0): ?>
                     <div class="flex flex-col items-center justify-center py-6 text-center">
@@ -282,7 +292,20 @@ if (user_can('customers.manage')) $quickActions[] = ['/customers/create', 'New C
                     </div>
                 <?php else: ?>
                     <div class="space-y-3">
-                        <?php if ($unpaidToday > 0): ?>
+                        <?php if ($pendingBookings > 0): ?>
+                    <a href="/bookings" class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg bg-sky-500/10 border border-sky-500/20 hover:bg-sky-500/15 transition">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+                            <div>
+                                <p class="text-xs font-medium text-white"><?= $pendingBookings ?> booking request<?= $pendingBookings === 1 ? '' : 's' ?> needs approval</p>
+                                <p class="text-[11px] text-slate-500">E.g. from the member portal — confirm to lock the table</p>
+                            </div>
+                        </div>
+                        <span class="text-xs text-sky-400 font-semibold">Approve →</span>
+                    </a>
+                <?php endif; ?>
+
+                <?php if ($unpaidToday > 0): ?>
                             <a href="/payments" class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/15 transition">
                                 <div class="flex items-center gap-2.5">
                                     <span class="w-2 h-2 rounded-full bg-rose-400"></span>

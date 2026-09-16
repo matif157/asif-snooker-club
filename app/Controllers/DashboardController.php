@@ -152,6 +152,17 @@ class DashboardController extends Controller
 
         $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'maintenance'));
 
+        // Bookings awaiting approval from the desk (e.g. portal requests)
+        $pendingBookings = (int) (Database::query(
+            "SELECT COUNT(*) AS c FROM bookings WHERE status = 'requested'"
+        )[0]['c'] ?? 0);
+
+        // Cameras assigned to tables (for command-center shortcuts)
+        $tableCameras = [];
+        foreach (TableModel::camerasByTable() as $row) {
+            $tableCameras[(int) $row['table_id']] = $row;
+        }
+
         $pct = fn(float $cur, float $prev): int => $prev > 0
             ? (int) round(($cur - $prev) / $prev * 100)
             : ($cur > 0 ? 100 : 0);
@@ -185,6 +196,8 @@ class DashboardController extends Controller
             'longRunMinutes'      => $longRunMinutes,
             'arrivingSoon'        => $arrivingSoon,
             'maintenanceCount'    => $maintenanceCount,
+            'pendingBookings'     => $pendingBookings,
+            'tableCameras'        => $tableCameras,
         ]);
     }
 

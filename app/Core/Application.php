@@ -6,7 +6,7 @@ namespace App\Core;
 
 class Application
 {
-    private array $authExempt = ['/login', '/install', '/api/auth/login', '/portal'];
+    private array $authExempt = ['/login', '/install', '/api/auth/login', '/portal', '/portal/login', '/portal/logout', '/portal/bookings'];
 
     public function run(): void
     {

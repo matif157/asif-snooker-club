@@ -6,11 +6,11 @@ D Ground, Faisalabad. Digitizes the handwritten daily register into a real-time 
 ## Features
 
 - **Table Command Center** — live visual grid of all tables with real-time timers, statuses (Available / Occupied / Reserved / Maintenance) and one-click start/end
-- **Operational dashboard** — KPI cards with day-over-day deltas (revenue, sessions, tables, profit), this-week vs last-week strip, **Needs Attention** alerts (unpaid sessions, arriving bookings, long-running tables, maintenance), payments-by-method donut, top tables today, and one-click quick actions (start session / booking / payment / expense)
+- **Operational dashboard** — KPI cards with day-over-day deltas (revenue, sessions, tables, profit), this-week vs last-week strip, **Needs Attention** alerts (unpaid sessions, arriving bookings, long-running tables, maintenance, **member booking requests awaiting approval**, tables with a live camera shortcut), payments-by-method donut, top tables today, and one-click quick actions (start session / booking / payment / expense)
 - **Sessions & Billing** — automatic time tracking, rate calculation (hourly/frame/VIP/night), min charge, extra charges, discounts
 - **Customers CRM** — profiles with visit/revenue history, **click-to-call** (`tel:`) and **WhatsApp** (`wa.me`) buttons, **CSV import & export**, per-session payment collection incl. partial
-- **Bookings** — table availability checks, status workflow (Requested → Confirmed → Arrived → Active → Completed), **auto-activation** on session start/end, stale bookings auto-expire
-- **Payments** — Cash, **JazzCash**, Bank Transfer, Card; outstanding balance tracking
+- **Bookings** — table availability checks, status workflow (Requested → Confirmed → Arrived → Active → Completed), **auto-activation** on session start/end, stale bookings auto-expire, **advance deposit at booking** and **"pay later"** record/approval from the bookings page
+- **Payments** — Cash, **JazzCash** (with transaction reference), Bank Transfer, Card; advance deposits and later payments are recorded against the booking, outstanding balance tracking; printable receipts
 - **Expenses & Finance** — categorized expenses (Electricity, Labour, Rent, etc.) with approval tracking
 - **Daily Closing** — collected by method, sessions billed, expenses, outstanding, with print & WhatsApp share
 - **Analytics** — revenue by hour (peak staffing), table utilization, top customers, daily revenue vs expenses, sessions-by-hour, category & booking-status breakdowns (7–90 day ranges)
@@ -25,12 +25,12 @@ D Ground, Faisalabad. Digitizes the handwritten daily register into a real-time 
 - **Audit log** — full action history (expense approvals, payments, sessions, etc.) with filters
 - **WhatsApp Broadcast center** — audience-targeted (active / outstanding / recent / VIP) message previews with personalized links & copy-all
 - **P&L report** — monthly revenue vs expenses, net profit, daily chart, method/category breakdowns + WhatsApp share
-- **Customer self-service portal** (`/portal`) — public phone-number lookup showing balance, recent sessions and payments
+- **Customer self-service portal** (`/portal`) — PIN-protected member dashboard: balance, **table booking requests**, upcoming bookings, recent sessions and payments
 - **Automated backups** — CLI `database/backup.php` + in-app backup manager (download/restore-ready SQL dumps, keeps last 20)
 - **Notifications bell** — live alerts for full tables, today's bookings, unpaid sessions
 - **Real-time updates** — live dashboard chart (real data), KPI auto-polling every 15s, lightweight AJAX polling (shared-hosting friendly) + optional SSE endpoints
 - **RBAC** — Owner, Admin, ECO, Counter, Staff, Auditor roles with granular permissions, editable per-role permission matrix (Owner/Admin locked full-access) including CCTV view/manage
-- **CCTV live grid** — `/cctv` browser-based live camera wall fed by a local media server (go2rtc/mediamtx); camera registry with name, location, RTSP source and stream names, enabled/disabled per camera
+- **CCTV live grid** — `/cctv` browser-based live camera wall fed by a local media server (go2rtc/mediamtx); camera registry with name, location, RTSP source and stream names, **each camera assignable to a table** (shown as a badge on the tile and as a shortcut on the dashboard table grid), edit-in-place from the wall, enabled/disabled per camera
 - **Visual customizer** — club accent colour (swatches + custom picker) flows through buttons, badges, nav, charts; per-user **Dark / Light / Auto** theme persisted server-side
 - **Premium dark UI** — responsive sidebar, notifications bell, snooker-branded login (D Ground, Faisalabad)
 
@@ -144,7 +144,16 @@ yourself out. The current user's own `settings.manage` is force-kept.
 ## Customer Portal
 
 Point members to `/portal` (no login needed): they enter the phone number they registered
-with and instantly see their outstanding balance, last sessions and payment history.
+with **and the 4-digit portal PIN**. On success they land on their member dashboard showing
+their outstanding balance, recent sessions and payment history, plus a **Book a Table** form
+(pick a table, date and time window — club checks availability). Bookings created there appear
+in the CRM as **Requested** with a "Portal" badge, so the counter person can review and
+approve/decline them; the member sees the live status on their dashboard.
+
+Setting the PIN: from the customer's edit page (Portal Access), type a new 4-digit PIN — the
+CRM stores it hashed and provides a one-tap **WhatsApp link** that sends the member their PIN
+along with the `/portal` address. Only the phone number + correct PIN can sign in; failed
+attempts show an error and the member stays on the PIN screen.
 
 ## WhatsApp / Click-to-Call
 
@@ -172,7 +181,7 @@ Setup:
      tables_all: rtsp://admin:pass@192.168.1.21:554/stream1
    ```
 
-3. In the CRM: **Add Camera** with the same **Stream name** (`table01`, …), optionally the RTSP source, and a friendly name + location. Enabled cameras appear in the grid as live `<img>` tiles; missing/offline streams show a "No signal" placeholder.
+3. In the CRM: **Add Camera** with the same **Stream name** (`table01`, …), optionally the RTSP source, a friendly name + location, and an **Assigned Table** (optional — the table's number/name shows on the tile and a camera shortcut appears on that table in the dashboard command center). Enabled cameras appear in the grid as live `<img>` tiles; missing/offline streams show a "No signal" placeholder. Cameras can be edited straight from the wall (rename, re-assign table, enable/disable).
 4. If go2rtc runs on another machine, set its address in **Settings → CCTV** (default `http://127.0.0.1:1984`).
 
 Roles with `cctv.view` see the wall; `cctv.manage` (Owner/Admin) can add/remove cameras.

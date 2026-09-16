@@ -71,6 +71,34 @@ class Customer extends BaseModel
     }
 
     /**
+     * Store (or reset) a member's 4-digit portal PIN. Always re-hashed.
+     */
+    public static function setPortalPin(int $id, string $pin): bool
+    {
+        $pin = preg_replace('/\D+/', '', $pin) ?? '';
+        if (strlen($pin) !== 4) {
+            return false;
+        }
+
+        Database::query(
+            'UPDATE customers SET portal_pin = ? WHERE id = ?',
+            [password_hash($pin, PASSWORD_DEFAULT), $id]
+        );
+
+        return true;
+    }
+
+    public static function verifyPortalPin(int $id, string $pin): bool
+    {
+        $row = Database::fetchOne('SELECT portal_pin FROM customers WHERE id = ?', [$id]);
+        if (!$row || empty($row['portal_pin'])) {
+            return false;
+        }
+
+        return password_verify($pin, $row['portal_pin']);
+    }
+
+    /**
      * Customers with a reachable phone number for WhatsApp broadcast.
      */
     public static function audience(string $audience = 'active', int $limit = 200): array
