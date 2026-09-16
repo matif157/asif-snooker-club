@@ -136,8 +136,31 @@ class Router
                 throw new \RuntimeException("Controller class '{$class}' not found");
             }
 
+            // Never let a malformed string reach a strict `int` route param — that
+            // would throw a TypeError and surface as a 500 "Something went wrong".
+            $paramValues = array_values($args);
+            $reflection  = new \ReflectionMethod($class, $method);
+            foreach ($reflection->getParameters() as $i => $parameter) {
+                $type = $parameter->getType();
+                $value = $paramValues[$i] ?? null;
+                if ($value === null || !$type instanceof \ReflectionNamedType || $type->getName() !== 'int') {
+                    continue;
+                }
+                if (!is_int($value) && !(is_string($value) && ctype_digit($value))) {
+                    if (str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/api/')) {
+                        header('Content-Type: application/json');
+                        http_response_code(400);
+                        echo json_encode(['success' => false, 'message' => 'Invalid identifier in request']);
+                        return null;
+                    }
+                    http_response_code(404);
+                    echo '<h1>404 — Not Found</h1>';
+                    return null;
+                }
+            }
+
             $controller = new $class();
-            return $controller->{$method}(...array_values($args));
+            return $controller->{$method}(...$paramValues);
         }
 
         return $handler(...array_values($args));

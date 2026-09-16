@@ -9,7 +9,7 @@ $reservedCount = count(array_filter($tables, fn($t) => $t['status'] === 'reserve
 $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'maintenance'));
 ?>
 
-<div class="space-y-6 fade-in" id="tables-root" x-data="tableCommandCenter()">
+<div class="space-y-6 fade-in" id="tables-root" x-data="tableCommandCenter(<?= htmlspecialchars((string) json_encode($startPrefill), ENT_QUOTES) ?>)">
 
     <!-- Page Header -->
     <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
@@ -437,7 +437,7 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
 </div>
 
 <script>
-function tableCommandCenter() {
+function tableCommandCenter(prefill) {
     return {
         // Start Modal
         showStartModal: false,
@@ -464,7 +464,15 @@ function tableCommandCenter() {
             // Alpine binds `this` to the component here (unlike x-init, where it is the global scope).
             window.__tablesComp = this;
             if (window.location.search.includes('start_session=1')) {
-                this.showStartModal = true;
+                if (prefill && Number.isInteger(prefill.id) && prefill.id > 0) {
+                    // Quick start: prefill the first free table so the modal is never
+                    // submitted without a table id (was crashing as /api/tables/null/start).
+                    this.openStartModal(prefill.id, prefill.number, prefill.hourly_rate);
+                } else {
+                    // No free table right now — keep the modal closed instead of
+                    // letting the user submit an empty table.
+                    alert('No table is available to start a session right now.');
+                }
             }
         },
 
@@ -497,9 +505,15 @@ function tableCommandCenter() {
         },
 
         async submitStartSession() {
+            const tableId = parseInt(this.modalTableId, 10);
+            if (!Number.isInteger(tableId) || tableId <= 0) {
+                alert('Could not identify the table for this session. Please refresh and try again.');
+                this.startSubmitting = false;
+                return;
+            }
             this.startSubmitting = true;
             try {
-                const result = await apiPost('/api/tables/' + this.modalTableId + '/start', {
+                const result = await apiPost('/api/tables/' + tableId + '/start', {
                     customer_id: this.selectedCustomer ? this.selectedCustomer.id : null,
                     players_count: parseInt(this.playersCount),
                     rate_type: this.rateType,
@@ -525,9 +539,15 @@ function tableCommandCenter() {
         },
 
         async confirmEndSession() {
+            const sessionId = parseInt(this.endSessionId, 10);
+            if (!Number.isInteger(sessionId) || sessionId <= 0) {
+                alert('Could not identify the session. Please refresh and try again.');
+                this.endSubmitting = false;
+                return;
+            }
             this.endSubmitting = true;
             try {
-                const result = await apiPost('/api/sessions/' + this.endSessionId + '/end');
+                const result = await apiPost('/api/sessions/' + sessionId + '/end');
                 if (result.success) {
                     location.reload();
                 } else {

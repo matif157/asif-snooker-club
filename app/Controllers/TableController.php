@@ -31,12 +31,27 @@ class TableController extends Controller
         }
         unset($t);
 
+        // Prefill target for the "Start New Session" quick action (?start_session=1):
+        // the first genuinely free table, so the modal never opens without a table.
+        $startPrefill = null;
+        foreach ($tables as $t) {
+            if (($t['status'] ?? '') === 'available') {
+                $startPrefill = [
+                    'id'         => (int) $t['id'],
+                    'number'     => $t['number'],
+                    'hourly_rate'=> (float) $t['hourly_rate'],
+                ];
+                break;
+            }
+        }
+
         $activeSessions = ClubSession::activeSessions();
 
         $this->view('tables/index', [
             'tables'        => $tables,
             'activeSessions'=> $activeSessions,
             'startSession'  => Request::get('start_session') === '1',
+            'startPrefill'  => $startPrefill,
         ]);
     }
 
