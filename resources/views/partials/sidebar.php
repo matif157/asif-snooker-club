@@ -5,8 +5,7 @@ $isActive = fn(string $path) => str_starts_with($uri, $path) || $uri === $path ?
 ?>
 <!-- Sidebar (always left) -->
 <aside class="fixed inset-y-0 left-0 z-50 w-[240px] bg-ink-850/95 border-r border-white/[0.06] flex flex-col
-              transform transition-transform duration-300 lg:translate-x-0
-              open ? 'translate-x-0' : '-translate-x-full'"
+              transform transition-transform duration-300 lg:translate-x-0"
      x-bind:class="mobileNav ? 'translate-x-0' : '-translate-x-full'">
 
     <!-- Brand -->

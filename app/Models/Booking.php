@@ -147,21 +147,21 @@ class Booking extends BaseModel
     }
 
     /**
-     * Mark unconfirmed bookings whose slot has fully passed as no-show.
+     * Mark bookings whose slot has fully passed and never became active as no-show.
      */
     public static function markNoShows(): int
     {
         $affected = 0;
         $rows = Database::query(
             "SELECT id FROM bookings
-             WHERE status IN ('arrived')
+             WHERE status IN ('requested','confirmed','arrived')
                AND end_time < CURTIME()
                AND booking_date <= CURDATE()"
         );
 
         foreach ($rows as $row) {
             Database::execute(
-                "UPDATE bookings SET status = 'completed' WHERE id = ?",
+                "UPDATE bookings SET status = 'no_show' WHERE id = ?",
                 [$row['id']]
             );
             $affected++;

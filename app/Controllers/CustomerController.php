@@ -15,6 +15,10 @@ class CustomerController extends Controller
 {
     public function index(): void
     {
+        if (!user_can('customers.view')) {
+            $this->error('You do not have permission to view customers.', 403);
+        }
+
         $customers = Database::query(
             "SELECT * FROM customers WHERE status = 'active' ORDER BY last_visit_at DESC, name ASC"
         );
@@ -34,6 +38,10 @@ class CustomerController extends Controller
 
     public function broadcast(): void
     {
+        if (!user_can('customers.manage')) {
+            $this->error('You do not have permission to manage customers.', 403);
+        }
+
         $audience = Request::get('audience', 'active');
         $message  = Request::get('message', SettingsService::whatsappTemplate());
         $submitted = Request::get('preview') === '1';
@@ -63,11 +71,19 @@ class CustomerController extends Controller
 
     public function create(): void
     {
+        if (!user_can('customers.manage')) {
+            $this->error('You do not have permission to manage customers.', 403);
+        }
+
         $this->view('customers/create', []);
     }
 
     public function store(): void
     {
+        if (!user_can('customers.manage')) {
+            $this->error('You do not have permission to manage customers.', 403);
+        }
+
         $data = Request::all();
         $errors = $this->validate($data, [
             'name'  => 'required|max:160',
@@ -99,6 +115,10 @@ class CustomerController extends Controller
 
     public function show(int $id): void
     {
+        if (!user_can('customers.view')) {
+            $this->error('You do not have permission to view customers.', 403);
+        }
+
         $customer = Customer::find($id);
         if (!$customer) {
             Response::redirect('/customers');
@@ -118,6 +138,10 @@ class CustomerController extends Controller
 
     public function edit(int $id): void
     {
+        if (!user_can('customers.manage')) {
+            $this->error('You do not have permission to manage customers.', 403);
+        }
+
         $customer = Customer::find($id);
         if (!$customer) {
             Response::redirect('/customers');
@@ -127,6 +151,10 @@ class CustomerController extends Controller
 
     public function update(int $id): void
     {
+        if (!user_can('customers.manage')) {
+            $this->error('You do not have permission to manage customers.', 403);
+        }
+
         $customer = Customer::find($id);
         if (!$customer) {
             Response::redirect('/customers');
@@ -149,6 +177,10 @@ class CustomerController extends Controller
 
     public function apiSearch(): void
     {
+        if (!user_can('customers.view')) {
+            Response::error('Forbidden', 403);
+        }
+
         $q = trim((string) (Request::get('term') ?? Request::get('q') ?? ''));
         if ($q === '') {
             Response::success([]);

@@ -17,6 +17,10 @@ class PaymentController extends Controller
 {
     public function index(): void
     {
+        if (!user_can('payments.view')) {
+            $this->error('You do not have permission to view payments.', 403);
+        }
+
         $payments    = Payment::recent(50);
         $outstanding = Payment::outstandingCustomers(10);
         $todayRev    = Payment::todayRevenueByMethod();
@@ -30,6 +34,10 @@ class PaymentController extends Controller
 
     public function store(): void
     {
+        if (!user_can('payments.manage')) {
+            $this->error('You do not have permission to record payments.', 403);
+        }
+
         $data = Request::all();
         $errors = $this->validate($data, [
             'amount' => 'required|numeric',
@@ -95,6 +103,10 @@ class PaymentController extends Controller
 
     public function receipt(int $id): void
     {
+        if (!user_can('payments.view')) {
+            $this->error('You do not have permission to view payments.', 403);
+        }
+
         $payment = Payment::withDetails($id);
         if (!$payment) {
             Response::error('Payment not found', 404);
@@ -111,6 +123,10 @@ class PaymentController extends Controller
 
     public function apiPay(int $id): void
     {
+        if (!user_can('payments.manage')) {
+            $this->error('You do not have permission to record payments.', 403);
+        }
+
         $session = ClubSession::find($id);
         if (!$session) {
             Response::error('Session not found', 404);

@@ -64,6 +64,11 @@ class Router
             $method = strtoupper($_POST['_method']);
         }
 
+        // _method aliases register under the POST bucket, so fall back to it
+        if (in_array($method, ['PUT', 'PATCH', 'DELETE'], true)) {
+            $method = 'POST';
+        }
+
         $path = parse_url($uri, PHP_URL_PATH) ?? '/';
         $path = rtrim($path, '/') ?: '/';
 

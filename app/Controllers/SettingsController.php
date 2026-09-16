@@ -102,6 +102,10 @@ class SettingsController extends Controller
 
     public function backup(): void
     {
+        if (!user_can('settings.manage')) {
+            $this->error('You do not have permission to manage settings.', 403);
+        }
+
         $path = BackupService::create();
         $bytes = filesize($path);
 
@@ -116,6 +120,10 @@ class SettingsController extends Controller
 
     public function downloadBackup(string $name): void
     {
+        if (!user_can('settings.manage')) {
+            $this->error('You do not have permission to manage settings.', 403);
+        }
+
         $safe = basename($name);
         $path = BackupService::backupDir() . '/' . $safe;
 

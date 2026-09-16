@@ -11,10 +11,12 @@ $totalToday = array_sum(array_column($todayRev, 'total'));
             <h1 class="text-xl sm:text-2xl font-bold text-white tracking-tight">Payments</h1>
             <p class="text-sm text-slate-400 mt-1">Revenue, transactions, and outstanding balances</p>
         </div>
+        <?php if (user_can('payments.manage')): ?>
         <button @click="showPaymentModal = true" class="btn-primary">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
             Record Payment
         </button>
+        <?php endif; ?>
     </div>
 
     <!-- Revenue by Method -->
@@ -80,7 +82,9 @@ $totalToday = array_sum(array_column($todayRev, 'total'));
             <div class="empty-state">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
                 <p class="text-sm text-slate-400">No payments recorded yet</p>
+                <?php if (user_can('payments.manage')): ?>
                 <button @click="showPaymentModal = true" class="btn-primary mt-4">Record First Payment</button>
+                <?php endif; ?>
             </div>
         <?php else: ?>
             <div class="overflow-x-auto">

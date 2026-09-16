@@ -132,7 +132,7 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
                     $session = $table['current_session'] ?? null;
                     $elapsed = $table['elapsed_seconds'] ?? 0;
                 ?>
-                <a href="/tables/<?= (int) $table['id'] ?>" class="table-tile <?= $class ?> block">
+                <a href="/tables" class="table-tile <?= $class ?> block">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-sm font-bold text-white">#<?= e($table['number']) ?></span>
                         <span class="status-dot flex-shrink-0"></span>

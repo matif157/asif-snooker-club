@@ -14,6 +14,10 @@ class BookingController extends Controller
 {
     public function index(): void
     {
+        if (!user_can('bookings.view')) {
+            $this->error('You do not have permission to view bookings.', 403);
+        }
+
         Booking::expirePast();
         Booking::markNoShows();
 
@@ -32,6 +36,10 @@ class BookingController extends Controller
 
     public function calendar(): void
     {
+        if (!user_can('bookings.view')) {
+            $this->error('You do not have permission to view bookings.', 403);
+        }
+
         Booking::expirePast();
 
         $month = Request::get('month');
@@ -74,6 +82,10 @@ class BookingController extends Controller
 
     public function store(): void
     {
+        if (!user_can('bookings.manage')) {
+            $this->error('You do not have permission to manage bookings.', 403);
+        }
+
         Booking::expirePast();
 
         $data = Request::all();
@@ -127,6 +139,10 @@ class BookingController extends Controller
 
     public function updateStatus(int $id): void
     {
+        if (!user_can('bookings.manage')) {
+            $this->error('You do not have permission to manage bookings.', 403);
+        }
+
         $booking = Booking::find($id);
         if (!$booking) {
             Response::error('Booking not found', 404);
@@ -134,7 +150,7 @@ class BookingController extends Controller
 
         $status = Request::input('status');
         $validTransitions = [
-            'requested'  => ['confirmed', 'cancelled', 'expired'],
+            'requested'  => ['confirmed', 'arrived', 'cancelled', 'expired'],
             'confirmed'  => ['arrived', 'cancelled', 'expired'],
             'arrived'    => ['active', 'cancelled', 'no_show'],
             'active'     => ['completed'],

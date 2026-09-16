@@ -155,7 +155,7 @@ foreach ($sessions as $s) {
                             </div>
                         </div>
                         <p class="text-2xl font-mono font-bold <?= $sess['status'] === 'active' ? 'text-emerald-400' : 'text-amber-400' ?> session-timer"
-                           data-start-time="<?= e($sess['start_time']) ?>"
+                           data-start-time="<?= (int) strtotime($sess['start_time']) ?>"
                            data-paused-total="<?= (int) ($sess['paused_total_sec'] ?? 0) ?>"
                            data-session-status="<?= e($sess['status']) ?>">
                             <?= format_duration($elapsedInit) ?>
@@ -301,7 +301,7 @@ function tickSessionTimers() {
         if (!startTime || sessionStatus !== 'active') return;
 
         const now = Math.floor(Date.now() / 1000);
-        const started = Math.floor(new Date(startTime + 'Z').getTime() / 1000);
+        const started = parseInt(el.dataset.startTime, 10);
         let elapsed = now - started - pausedTotal;
         if (elapsed < 0) elapsed = 0;
         el.textContent = formatDuration(elapsed);

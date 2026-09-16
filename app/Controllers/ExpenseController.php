@@ -13,6 +13,10 @@ class ExpenseController extends Controller
 {
     public function index(): void
     {
+        if (!user_can('expenses.view')) {
+            $this->error('You do not have permission to view expenses.', 403);
+        }
+
         $from = Request::get('from', date('Y-m-01'));
         $to   = Request::get('to', date('Y-m-d'));
 
@@ -36,6 +40,10 @@ class ExpenseController extends Controller
 
     public function store(): void
     {
+        if (!user_can('expenses.manage')) {
+            $this->error('You do not have permission to manage expenses.', 403);
+        }
+
         $data = Request::all();
         $errors = $this->validate($data, [
             'amount'       => 'required|numeric',

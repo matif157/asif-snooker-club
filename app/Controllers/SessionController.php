@@ -68,6 +68,10 @@ class SessionController extends Controller
 
     public function active(): void
     {
+        if (!user_can('sessions.manage')) {
+            $this->error('You do not have permission to manage sessions.', 403);
+        }
+
         $sessions = \App\Models\ClubSession::activeSessions();
         $this->view('sessions/active', ['sessions' => $sessions]);
     }
@@ -89,6 +93,10 @@ class SessionController extends Controller
 
     public function invoice(int $id): void
     {
+        if (!user_can('sessions.view')) {
+            $this->error('You do not have permission to view sessions.', 403);
+        }
+
         $session = ClubSession::withDetails($id);
         if (!$session) {
             Response::error('Session not found', 404);
@@ -113,6 +121,10 @@ class SessionController extends Controller
 
     public function apiStart(int $id): void
     {
+        if (!user_can('sessions.manage')) {
+            Response::error('Forbidden', 403);
+        }
+
         $table = TableModel::find($id);
         if (!$table) {
             Response::error('Table not found', 404);
@@ -169,6 +181,10 @@ class SessionController extends Controller
 
     public function apiEnd(int $id): void
     {
+        if (!user_can('sessions.manage')) {
+            Response::error('Forbidden', 403);
+        }
+
         $session = \App\Models\ClubSession::find($id);
         if (!$session || $session->status === 'completed') {
             Response::error('Session not found or already ended', 404);
@@ -216,6 +232,10 @@ class SessionController extends Controller
 
     public function apiAddCharge(int $id): void
     {
+        if (!user_can('sessions.manage')) {
+            Response::error('Forbidden', 403);
+        }
+
         $session = \App\Models\ClubSession::find($id);
         if (!$session || $session->status === 'completed') {
             Response::error('Session not found');
@@ -235,6 +255,10 @@ class SessionController extends Controller
 
     public function apiDiscount(int $id): void
     {
+        if (!user_can('sessions.manage')) {
+            Response::error('Forbidden', 403);
+        }
+
         $session = \App\Models\ClubSession::find($id);
         if (!$session || $session->status === 'completed') {
             Response::error('Session not found');

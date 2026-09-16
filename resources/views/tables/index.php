@@ -133,19 +133,34 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
                     } ?>"><?= $label ?></span>
 
                     <?php if ($status === 'available'): ?>
+                        <?php if (user_can('sessions.manage')): ?>
                         <button class="btn-primary !py-1.5 !px-3 !text-[11px] opacity-0 group-hover:opacity-100 transition-opacity"
                                 onclick="event.stopPropagation(); openStartModal(<?= (int) $table['id'] ?>, '<?= e($table['number']) ?>', <?= (float) $table['hourly_rate'] ?>)">
                             Start
                         </button>
+                        <?php endif; ?>
                     <?php elseif ($status === 'occupied' && $session): ?>
+                        <?php if (user_can('sessions.manage')): ?>
                         <button class="btn-danger !py-1.5 !px-3 !text-[11px] opacity-0 group-hover:opacity-100 transition-opacity"
                                 onclick="event.stopPropagation(); endSession(<?= (int) $session['id'] ?>, <?= (int) $table['id'] ?>)">
                             End
                         </button>
+                        <?php endif; ?>
                     <?php endif; ?>
                 </div>
             </div>
         <?php endforeach; ?>
+
+        <?php if (empty($tables)): ?>
+        <div class="col-span-full empty-state fade-in-stagger">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><rect x="4" y="6" width="16" height="10" rx="1.5"/><path stroke-linecap="round" d="M4 12h16M9 20h6M12 16v4"/></svg>
+            <p class="text-slate-400">No tables yet</p>
+            <p class="text-xs text-slate-600 mt-1">Add your first table to start tracking snooker sessions.</p>
+            <?php if (user_can('tables.manage')): ?>
+                <a href="<?= e(url('/tables/create')) ?>" class="btn-primary text-xs mt-4">Add Table</a>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
     </div>
 
     <!-- ── Active Sessions Panel ─────────────────────────────────── -->
@@ -192,7 +207,7 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
                         ?>
                         <tr data-session-id="<?= (int) $sess['id'] ?>">
                             <td>
-                                <a href="/tables/<?= (int) $sess['table_id'] ?>" class="font-medium text-white hover:text-emerald-400 transition">
+                                <a href="/tables" class="font-medium text-white hover:text-emerald-400 transition">
                                     #<?= e($sess['table_number']) ?>
                                 </a>
                                 <span class="text-slate-500 ml-1"> <?= e($sess['table_name']) ?></span>
@@ -420,9 +435,6 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
     </div>
 
 </div>
-
-<!-- Alpine.js -->
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
 <script>
 function tableCommandCenter() {

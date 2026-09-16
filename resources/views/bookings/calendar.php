@@ -13,6 +13,9 @@
             <p class="text-sm text-slate-400 mt-1">Month view of all table reservations</p>
         </div>
         <div class="flex items-center gap-2">
+            <a href="<?= e(url('/bookings')) ?>" class="btn-secondary !px-3 !py-2" title="Back to bookings">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            </a>
             <a href="<?= e(url('/bookings/calendar?month=' . $prevMonth)) ?>" class="btn-secondary !px-3 !py-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
             </a>
