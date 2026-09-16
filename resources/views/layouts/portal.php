@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Member Portal — <?= e(\App\Services\SettingsService::clubName()) ?></title>
     <?= App\Services\ThemeService::cssVars() ?>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/assets/vendor/tailwind.js"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',

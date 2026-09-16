@@ -10,7 +10,7 @@ $clubName = 'ASIF SNOOKER CLUB';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($clubName) ?> — Installer</title>
     <?= App\Services\ThemeService::cssVars('#10b981') ?>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/assets/vendor/tailwind.js"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',

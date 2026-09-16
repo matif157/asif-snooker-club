@@ -15,7 +15,7 @@ $clockIcon = '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none
         if (localStorage.getItem('theme') === 'light') { document.documentElement.classList.remove('dark'); }
     </script>
     <?= App\Services\ThemeService::cssVars() ?>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/assets/vendor/tailwind.js"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',

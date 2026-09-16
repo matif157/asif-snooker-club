@@ -22,7 +22,7 @@ D Ground, Faisalabad. Digitizes the handwritten daily register into a real-time 
 - **Payment receipts** — print-ready receipts with amount in words
 - **Booking calendar** — monthly grid with per-table chips and prev/next navigation
 - **Tournament manager** — single-elimination knockout tournaments: entry fees, prizes and best-of format; player registration from the customers directory (or walk-ins), seeded bracket generation with automatic byes, results recorded per match with auto-advancing rounds and a highlighted champion
-- **Self-hosted assets** — Alpine.js, Chart.js and hls.js are vendored under `public/assets/vendor`; interactive forms, charts and CCTV live mode work with zero CDN dependency (only the dev-time Tailwind Play CDN is external)
+- **Self-hosted assets** — Alpine.js, Chart.js, hls.js and the Tailwind Play runtime are vendored under `public/assets/vendor`; interactive forms, charts, CCTV live mode and all styling work with zero CDN dependency
 - **Tunnel-friendly URLs** — generated links/redirects derive from the forwarded public host (`X-Forwarded-Host` + `X-Forwarded-Proto`), so the app works cleanly behind ngrok or any reverse proxy
 - **Follow-up & Recovery center** — outstanding customers + missed bookings with one-tap WhatsApp reminders
 - **Audit log** — full action history (expense approvals, payments, sessions, etc.) with filters

@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Receipt — <?= e(\App\Services\SettingsService::clubName()) ?></title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/assets/vendor/tailwind.js"></script>
     <style>
         @media print {
             .no-print { display: none !important; }

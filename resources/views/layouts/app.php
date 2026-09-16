@@ -12,7 +12,7 @@ $currentPage = basename($_SERVER['REQUEST_URI'] ?? '/');
     <meta name="csrf-token" content="<?= e(csrf_token()) ?>">
     <?= App\Services\ThemeService::themeBoot(App\Services\ThemeService::userTheme()) ?>
     <?= App\Services\ThemeService::cssVars() ?>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/assets/vendor/tailwind.js"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
