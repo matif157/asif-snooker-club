@@ -6,6 +6,7 @@ D Ground, Faisalabad. Digitizes the handwritten daily register into a real-time 
 ## Features
 
 - **Table Command Center** — live visual grid of all tables with real-time timers, statuses (Available / Occupied / Reserved / Maintenance) and one-click start/end
+- **Operational dashboard** — KPI cards with day-over-day deltas (revenue, sessions, tables, profit), this-week vs last-week strip, **Needs Attention** alerts (unpaid sessions, arriving bookings, long-running tables, maintenance), payments-by-method donut, top tables today, and one-click quick actions (start session / booking / payment / expense)
 - **Sessions & Billing** — automatic time tracking, rate calculation (hourly/frame/VIP/night), min charge, extra charges, discounts
 - **Customers CRM** — profiles with visit/revenue history, **click-to-call** (`tel:`) and **WhatsApp** (`wa.me`) buttons, **CSV import & export**, per-session payment collection incl. partial
 - **Bookings** — table availability checks, status workflow (Requested → Confirmed → Arrived → Active → Completed), **auto-activation** on session start/end, stale bookings auto-expire
@@ -27,7 +28,7 @@ D Ground, Faisalabad. Digitizes the handwritten daily register into a real-time 
 - **Customer self-service portal** (`/portal`) — public phone-number lookup showing balance, recent sessions and payments
 - **Automated backups** — CLI `database/backup.php` + in-app backup manager (download/restore-ready SQL dumps, keeps last 20)
 - **Notifications bell** — live alerts for full tables, today's bookings, unpaid sessions
-- **Real-time updates** — live dashboard chart (real data), lightweight AJAX polling (shared-hosting friendly) + optional SSE endpoints
+- **Real-time updates** — live dashboard chart (real data), KPI auto-polling every 15s, lightweight AJAX polling (shared-hosting friendly) + optional SSE endpoints
 - **RBAC** — Owner, Admin, ECO, Counter, Staff, Auditor roles with granular permissions, editable per-role permission matrix (Owner/Admin locked full-access) including CCTV view/manage
 - **CCTV live grid** — `/cctv` browser-based live camera wall fed by a local media server (go2rtc/mediamtx); camera registry with name, location, RTSP source and stream names, enabled/disabled per camera
 - **Visual customizer** — club accent colour (swatches + custom picker) flows through buttons, badges, nav, charts; per-user **Dark / Light / Auto** theme persisted server-side

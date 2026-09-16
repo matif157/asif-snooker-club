@@ -1,19 +1,36 @@
 <?php
 /** @var array $tables, $activeTables, $availableTables, $sessionStats, $todayPayments */
-/** @var float $todayRevenue, $todayExpenses, $estimatedProfit */
-/** @var array $outstanding, $upcomingBookings, $recentSessions, $activeSessions */
+/** @var float $todayRevenue, $todayExpenses, $estimatedProfit, $yesterdayRevenue, $weekRevenue */
+/** @var int $yesterdaySessions, $weekSessions, $revenueDelta, $sessionsDelta, $weekRevenueDelta, $weekSessionsDelta */
+/** @var array $outstanding, $upcomingBookings, $recentSessions, $activeSessions, $topTablesToday, $longRunning, $arrivingSoon */
+/** @var int $unpaidToday, $maintenanceCount */
+/** @var float $unpaidTodayTotal */
+/** @var int $longRunMinutes */
 
 $tableCount = count($tables);
 $occupiedCount = count($activeTables);
 $availableCount = count($availableTables);
 $reservedCount = count(array_filter($tables, fn($t) => $t['status'] === 'reserved'));
-$maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'maintenance'));
+$maintenanceCount = $maintenanceCount ?? count(array_filter($tables, fn($t) => $t['status'] === 'maintenance'));
+
+$deltaBadge = fn(int $pct, string $good = 'emerald', string $bad = 'rose'): string => match (true) {
+    $pct > 0   => '<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 text-[11px] font-semibold">▲ ' . $pct . '%</span>',
+    $pct < 0   => '<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-rose-500/10 text-rose-400 text-[11px] font-semibold">▼ ' . abs($pct) . '%</span>',
+    default    => '<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-white/5 text-slate-400 text-[11px] font-semibold">± 0%</span>',
+};
+
+$quickActions = [];
+if (user_can('sessions.manage')) $quickActions[] = ['/tables', 'Start Session', 'play'];
+if (user_can('bookings.manage')) $quickActions[] = ['/bookings', 'New Booking', 'calendar'];
+if (user_can('payments.manage')) $quickActions[] = ['/payments', 'Record Payment', 'cash'];
+if (user_can('expenses.manage')) $quickActions[] = ['/expenses', 'Add Expense', 'trend'];
+if (user_can('customers.manage')) $quickActions[] = ['/customers/create', 'New Customer', 'user'];
 ?>
 
 <div class="space-y-6 fade-in">
 
-    <!-- Page Title -->
-    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+    <!-- Page Title + Quick Actions -->
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
             <h1 class="text-xl sm:text-2xl font-bold text-white tracking-tight">Dashboard</h1>
             <p class="text-sm text-slate-400 mt-1">
@@ -21,9 +38,22 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
                 <span class="text-emerald-400 font-semibold"><?= date('l, M j, Y') ?></span>
             </p>
         </div>
-        <div class="flex items-center gap-2 text-xs text-slate-500">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            Synced <span id="last-sync">just now</span>
+        <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 text-xs text-slate-500 mr-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                Synced <span id="last-sync">just now</span>
+            </div>
+            <?php if ($quickActions): ?>
+                <div class="hidden md:flex items-center gap-2">
+                    <?php foreach ($quickActions as $i => $qa): ?>
+                        <?php if ($i === 0): ?>
+                            <a href="<?= $qa[0] ?>" class="btn btn-accent"><?= $qa[1] ?></a>
+                        <?php else: ?>
+                            <a href="<?= $qa[0] ?>" class="btn btn-ghost"><?= $qa[1] ?></a>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -42,7 +72,8 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
             </div>
             <p class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Rs <span data-kpi="revenue"><?= number_format($todayRevenue) ?></span></p>
             <div class="mt-3 flex items-center gap-2 text-xs">
-                <span class="text-slate-400">Expenses: <span class="text-rose-400">Rs <?= number_format($todayExpenses) ?></span></span>
+                <?= $deltaBadge($revenueDelta) ?>
+                <span class="text-slate-500">vs yesterday</span>
             </div>
         </div>
 
@@ -58,8 +89,9 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
                 </div>
             </div>
             <p class="text-2xl sm:text-3xl font-bold text-white tracking-tight"><span data-kpi="sessions"><?= $sessionStats['count'] ?></span></p>
-            <div class="mt-3 flex items-center gap-2 text-xs text-slate-400">
-                Collected: <span class="text-emerald-400">Rs <?= number_format($sessionStats['collected']) ?></span>
+            <div class="mt-3 flex items-center gap-2 text-xs">
+                <?= $deltaBadge($sessionsDelta) ?>
+                <span class="text-slate-500">vs yesterday</span>
             </div>
         </div>
 
@@ -80,6 +112,12 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                     <?= $availableCount ?> available
                 </span>
+                <?php if ($reservedCount > 0): ?>
+                    <span class="inline-flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-violet-400"></span>
+                        <?= $reservedCount ?> reserved
+                    </span>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -100,6 +138,33 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
             <div class="mt-3 flex items-center gap-2 text-xs text-slate-400">
                 Revenue − Expenses
             </div>
+        </div>
+    </div>
+
+    <!-- Week Strip -->
+    <div class="card px-5 py-4 flex flex-wrap items-center gap-x-8 gap-y-3">
+        <div class="flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <div>
+                <p class="text-[11px] uppercase tracking-wider text-slate-500 font-medium">This Week</p>
+                <p class="text-sm font-semibold text-white">Rs <?= number_format($weekRevenue) ?></p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 text-xs">
+            <?= $deltaBadge($weekRevenueDelta) ?>
+            <span class="text-slate-500">vs last week</span>
+        </div>
+        <div class="w-px h-8 bg-white/10 hidden sm:block"></div>
+        <div class="flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div>
+                <p class="text-[11px] uppercase tracking-wider text-slate-500 font-medium">Sessions</p>
+                <p class="text-sm font-semibold text-white"><?= $weekSessions ?></p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 text-xs">
+            <?= $deltaBadge($weekSessionsDelta) ?>
+            <span class="text-slate-500">vs last week</span>
         </div>
     </div>
 
@@ -182,7 +247,7 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
         </div>
     </div>
 
-    <!-- Charts Row -->
+    <!-- Charts + Alerts Row -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         <!-- Revenue Chart -->
@@ -192,13 +257,83 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
                 <select id="chartRange" class="bg-ink-800 border border-white/10 rounded-lg text-xs text-slate-300 px-3 py-1.5 focus:ring-2 focus:ring-emerald-500/50 focus:outline-none">
                     <option value="7">Last 7 Days</option>
                     <option value="30" selected>Last 30 Days</option>
+                    <option value="90">Last 90 Days</option>
                 </select>
             </div>
             <canvas id="revenueChart" height="220"></canvas>
         </div>
 
-        <!-- Bookings + Outstanding -->
+        <!-- Right column: Alerts + Upcoming Bookings -->
         <div class="space-y-5">
+            <!-- Alerts -->
+            <div class="card p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-semibold text-white uppercase tracking-wider">Needs Attention</h3>
+                    <span class="text-xs text-slate-500" id="alert-count"></span>
+                </div>
+                <?php $alertCount = ($unpaidToday > 0 ? 1 : 0) + count($arrivingSoon) + count($longRunning) + ($maintenanceCount > 0 ? 1 : 0); ?>
+                <script>document.getElementById('alert-count').textContent = '<?= $alertCount ?> alert<?= $alertCount === 1 ? '' : 's' ?>';</script>
+                <?php if ($alertCount === 0): ?>
+                    <div class="flex flex-col items-center justify-center py-6 text-center">
+                        <div class="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        </div>
+                        <p class="text-xs text-slate-500">All clear — nothing needs attention.</p>
+                    </div>
+                <?php else: ?>
+                    <div class="space-y-3">
+                        <?php if ($unpaidToday > 0): ?>
+                            <a href="/payments" class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/15 transition">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="w-2 h-2 rounded-full bg-rose-400"></span>
+                                    <div>
+                                        <p class="text-xs font-medium text-white"><?= $unpaidToday ?> completed session<?= $unpaidToday === 1 ? '' : 's' ?> unpaid</p>
+                                        <p class="text-[11px] text-slate-500">Rs <?= number_format($unpaidTodayTotal) ?> outstanding</p>
+                                    </div>
+                                </div>
+                                <span class="text-xs text-rose-400 font-semibold">Collect →</span>
+                            </a>
+                        <?php endif; ?>
+
+                        <?php foreach ($arrivingSoon as $b): ?>
+                            <div class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                                    <div>
+                                        <p class="text-xs font-medium text-white"><?= e($b['customer_name'] ?? 'Walk-in') ?></p>
+                                        <p class="text-[11px] text-slate-500">Table #<?= e($b['table_number']) ?> · <?= date('g:i A', strtotime($b['start_time'])) ?></p>
+                                    </div>
+                                </div>
+                                <span class="badge badge-amber shrink-0">Arriving</span>
+                            </div>
+                        <?php endforeach; ?>
+
+                        <?php foreach ($longRunning as $s): ?>
+                            <a href="/tables" class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/15 transition">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                                    <div>
+                                        <p class="text-xs font-medium text-white">Table #<?= e($s['table_number']) ?></p>
+                                        <p class="text-[11px] text-slate-500">Running <?= format_duration(time() - strtotime($s['start_time']) - (int) ($s['paused_total_sec'] ?? 0)) ?></p>
+                                    </div>
+                                </div>
+                                <span class="badge badge-amber shrink-0">Long run</span>
+                            </a>
+                        <?php endforeach; ?>
+
+                        <?php if ($maintenanceCount > 0): ?>
+                            <div class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg bg-slate-500/10 border border-white/10">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                                    <p class="text-xs font-medium text-white"><?= $maintenanceCount ?> table<?= $maintenanceCount === 1 ? '' : 's' ?> in maintenance</p>
+                                </div>
+                                <a href="/tables" class="text-xs text-slate-400 hover:text-white transition">View →</a>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+
             <!-- Upcoming Bookings -->
             <div class="card p-5">
                 <div class="flex items-center justify-between mb-4">
@@ -228,6 +363,115 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
                     </div>
                 <?php endif; ?>
             </div>
+        </div>
+    </div>
+
+    <!-- Sessions + Side widgets Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Recent Sessions -->
+        <?php if (!empty($recentSessions)): ?>
+        <div class="lg:col-span-2 card p-6">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="text-sm font-semibold text-white uppercase tracking-wider">Recent Sessions</h3>
+                <a href="/sessions" class="text-xs text-emerald-400 hover:text-emerald-300 transition font-medium">View all →</a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Table</th>
+                            <th>Customer</th>
+                            <th>Started</th>
+                            <th>Status</th>
+                            <th class="text-right">Amount</th>
+                            <th>Payment</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach (array_slice($recentSessions, 0, 8) as $sess): ?>
+                            <tr>
+                                <td class="font-medium text-white">#<?= e($sess['table_number']) ?></td>
+                                <td><?= e($sess['customer_name'] ?? 'Walk-in') ?></td>
+                                <td class="text-slate-400"><?= date('M j, g:i A', strtotime($sess['start_time'])) ?></td>
+                                <td>
+                                    <span class="badge badge-<?= match($sess['status']) {
+                                        'active' => 'emerald',
+                                        'completed' => 'slate',
+                                        'paused' => 'amber',
+                                        default => 'rose',
+                                    } ?>"><?= ucfirst($sess['status']) ?></span>
+                                </td>
+                                <td class="text-right font-medium text-white">Rs <?= number_format((float) $sess['amount']) ?></td>
+                                <td>
+                                    <span class="badge badge-<?= match($sess['payment_status']) {
+                                        'paid' => 'emerald',
+                                        'partial' => 'amber',
+                                        'unpaid' => 'rose',
+                                        default => 'slate',
+                                    } ?>"><?= ucfirst($sess['payment_status']) ?></span>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <!-- Right column: Payments by method + Top tables + Outstanding -->
+        <div class="space-y-5">
+            <!-- Payments by Method -->
+            <div class="card p-5">
+                <h3 class="text-sm font-semibold text-white uppercase tracking-wider mb-4">Payments Today</h3>
+                <?php if (empty($todayPayments)): ?>
+                    <p class="text-xs text-slate-500 py-6 text-center">No payments recorded yet today</p>
+                <?php else: ?>
+                    <div class="flex items-center gap-5">
+                        <div class="relative w-28 h-28">
+                            <canvas id="methodsChart"></canvas>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="space-y-1.5">
+                                <?php foreach ($todayPayments as $m): ?>
+                                    <div class="flex items-center justify-between gap-2 text-xs">
+                                        <span class="inline-flex items-center gap-1.5 text-slate-400 truncate">
+                                            <span class="w-2 h-2 rounded-full method-dot shrink-0"></span>
+                                            <?= e(ucfirst($m['method'])) ?>
+                                        </span>
+                                        <span class="font-semibold text-white">Rs <?= number_format((float) $m['total']) ?></span>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                            <div class="mt-3 pt-3 border-t border-white/10 flex items-center justify-between text-xs">
+                                <span class="text-slate-500">Total</span>
+                                <span class="font-bold text-emerald-400">Rs <?= number_format($todayRevenue) ?></span>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <!-- Top Tables Today -->
+            <?php if (!empty($topTablesToday)): ?>
+            <div class="card p-5">
+                <h3 class="text-sm font-semibold text-white uppercase tracking-wider mb-4">Top Tables Today</h3>
+                <div class="space-y-2.5">
+                    <?php foreach ($topTablesToday as $i => $t): ?>
+                        <div class="flex items-center justify-between py-2 px-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <span class="w-6 h-6 rounded-md <?= $i === 0 ? 'bg-amber-500/15 text-amber-400' : 'bg-white/5 text-slate-500' ?> flex items-center justify-center text-[11px] font-bold shrink-0"><?= $i + 1 ?></span>
+                                <div class="min-w-0">
+                                    <p class="text-xs font-medium text-white truncate">#<?= e($t['number']) ?> <?= e($t['name']) ?></p>
+                                    <p class="text-[11px] text-slate-500"><?= (int) $t['session_count'] ?> session<?= (int) $t['session_count'] === 1 ? '' : 's' ?> · <?= number_format((float) $t['hours'], 1) ?> hr</p>
+                                </div>
+                            </div>
+                            <span class="text-sm font-bold text-emerald-400 shrink-0">Rs <?= number_format((float) $t['revenue']) ?></span>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <?php endif; ?>
 
             <!-- Outstanding Balances -->
             <?php if (!empty($outstanding)): ?>
@@ -253,66 +497,54 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
         </div>
     </div>
 
-    <!-- Recent Sessions -->
-    <?php if (!empty($recentSessions)): ?>
-    <div class="card p-6">
-        <div class="flex items-center justify-between mb-5">
-            <h3 class="text-sm font-semibold text-white uppercase tracking-wider">Recent Sessions</h3>
-            <a href="/sessions" class="text-xs text-emerald-400 hover:text-emerald-300 transition font-medium">View all →</a>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Table</th>
-                        <th>Customer</th>
-                        <th>Started</th>
-                        <th>Status</th>
-                        <th class="text-right">Amount</th>
-                        <th>Payment</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach (array_slice($recentSessions, 0, 8) as $sess): ?>
-                        <tr>
-                            <td class="font-medium text-white">#<?= e($sess['table_number']) ?></td>
-                            <td><?= e($sess['customer_name'] ?? 'Walk-in') ?></td>
-                            <td class="text-slate-400"><?= date('M j, g:i A', strtotime($sess['start_time'])) ?></td>
-                            <td>
-                                <span class="badge badge-<?= match($sess['status']) {
-                                    'active' => 'emerald',
-                                    'completed' => 'slate',
-                                    'paused' => 'amber',
-                                    default => 'rose',
-                                } ?>"><?= ucfirst($sess['status']) ?></span>
-                            </td>
-                            <td class="text-right font-medium text-white">Rs <?= number_format((float) $sess['amount']) ?></td>
-                            <td>
-                                <span class="badge badge-<?= match($sess['payment_status']) {
-                                    'paid' => 'emerald',
-                                    'partial' => 'amber',
-                                    'unpaid' => 'rose',
-                                    default => 'slate',
-                                } ?>"><?= ucfirst($sess['payment_status']) ?></span>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
-    <?php endif; ?>
-
 </div>
 
-<!-- Revenue Chart Script -->
+<!-- Dashboard Scripts -->
 <script>
 document.addEventListener('DOMContentLoaded', async () => {
+    const _aHex = getComputedStyle(document.documentElement).getPropertyValue('--a-500').trim() || '#10b981';
+const _aRgb = (al) => { const n = (_aHex.match(/[0-9a-f]{2}/gi) || ['10','b9','81']).map(x => parseInt(x, 16)); return `rgba(${n[0]},${n[1]},${n[2]},${al})`; };
+
+    const palette = ['#10b981', '#38bdf8', '#f59e0b', '#a78bfa', '#f43f5e', '#94a3b8'];
+
+    const methodsChart = document.getElementById('methodsChart');
+    if (methodsChart) {
+        const labels = <?= json_encode(array_column($todayPayments, 'method')) ?>.map(m => m.charAt(0).toUpperCase() + m.slice(1));
+        const values = <?= json_encode(array_column($todayPayments, 'total')) ?>;
+        const colors = labels.map((_, i) => i === 0 ? _aHex : palette[(i - 1) % palette.length]);
+        document.querySelectorAll('.method-dot').forEach((el, i) => {
+            el.style.background = colors[i % colors.length];
+        });
+        new Chart(methodsChart, {
+            type: 'doughnut',
+            data: {
+                labels,
+                datasets: [{ data: values, backgroundColor: colors, borderColor: '#131824', borderWidth: 3 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '68%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#131824',
+                        titleColor: '#f8fafc',
+                        bodyColor: '#cbd5e1',
+                        borderColor: 'rgba(255,255,255,0.1)',
+                        borderWidth: 1,
+                        padding: 10,
+                        cornerRadius: 8,
+                        callbacks: { label: c => ' ' + c.label + ': Rs ' + c.parsed.toLocaleString() }
+                    }
+                }
+            }
+        });
+    }
+
     const ctx = document.getElementById('revenueChart');
     if (!ctx) return;
 
-    const _aHex = getComputedStyle(document.documentElement).getPropertyValue('--a-500').trim() || '#10b981';
-    const _aRgb = (al) => { const n = (_aHex.match(/[0-9a-f]{2}/gi) || ['10','b9','81']).map(x => parseInt(x, 16)); return `rgba(${n[0]},${n[1]},${n[2]},${al})`; };
     const chart = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -351,7 +583,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     borderWidth: 1,
                     padding: 12,
                     cornerRadius: 10,
-                    displayColors: true,
                     callbacks: {
                         label: function(context) {
                             return ' ' + context.dataset.label + ': Rs ' + context.parsed.y.toLocaleString();
@@ -366,7 +597,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // Load chart data from real API
     async function loadChart(days) {
         try {
             const res = await apiGet('/api/dashboard/revenue-trend?days=' + days);
