@@ -9,7 +9,7 @@ $reservedCount = count(array_filter($tables, fn($t) => $t['status'] === 'reserve
 $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'maintenance'));
 ?>
 
-<div class="space-y-6 fade-in" x-data="tableCommandCenter()">
+<div class="space-y-6 fade-in" id="tables-root" x-data="tableCommandCenter()" x-init="window.__tablesComp = this">
 
     <!-- Page Header -->
     <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
@@ -539,13 +539,31 @@ function tableCommandCenter() {
     };
 }
 
-// Global helper for inline onclick handlers
+// Global helper for inline onclick handlers — resolves the Table Command
+// Center Alpine component reliably (never the layout/header scopes).
+function tablesCommandComponent() {
+    if (window.__tablesComp && window.__tablesComp.openStartModal) return window.__tablesComp;
+    if (window.Alpine) {
+        const root = document.getElementById('tables-root');
+        if (root) {
+            try {
+                const comp = Alpine.$data(root);
+                if (comp && comp.openStartModal) return comp;
+            } catch (e) { /* fall through */ }
+        }
+    }
+    return null;
+}
+
 function openStartModal(id, number, rate) {
-    const comp = Alpine.$data(document.querySelector('[x-data]'));
+    const comp = tablesCommandComponent();
+    if (!comp) { alert('Interactive controls failed to load — please refresh the page.'); return; }
     comp.openStartModal(id, number, rate);
 }
+
 function endSession(sessionId, tableId) {
-    const comp = Alpine.$data(document.querySelector('[x-data]'));
+    const comp = tablesCommandComponent();
+    if (!comp) { alert('Interactive controls failed to load — please refresh the page.'); return; }
     comp.endSession(sessionId, tableId);
 }
 
