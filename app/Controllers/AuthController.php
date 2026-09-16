@@ -8,6 +8,7 @@ use App\Core\Auth;
 use App\Core\Controller;
 use App\Core\Request;
 use App\Core\Response;
+use App\Core\Session;
 use App\Models\User;
 
 class AuthController extends Controller
@@ -27,24 +28,36 @@ class AuthController extends Controller
         $password = (string) Request::post('password', '');
         $errors   = [];
 
-        if (!Request::csrf()) {
+        $lockUntil = (int) Session::get('_login_lock_until', 0);
+        if ($lockUntil > time()) {
+            $errors['general'] = 'Too many failed attempts. Try again in ' . ceil(($lockUntil - time()) / 60) . ' minute(s).';
+        } elseif (!Request::csrf()) {
             $errors['general'] = 'Session expired. Please try again.';
         } elseif ($email === '' || $password === '') {
             $errors['general'] = 'Please enter your email and password.';
-        } else {
-            if (Auth::attempt($email, $password)) {
-                $user = Auth::user();
-                if ($user?->status === 'inactive') {
-                    Auth::logout();
-                    $errors['general'] = 'This account is disabled. Contact the owner.';
-                } else {
-                    if ($user) {
-                        User::updateLastLogin((int) $user->id);
-                    }
-                    Response::redirect('/');
-                }
+        } elseif (Auth::attempt($email, $password)) {
+            Session::regenerate();
+            Session::remove('_login_fails');
+            Session::remove('_login_lock_until');
+            $user = Auth::user();
+            if ($user?->status === 'inactive') {
+                Auth::logout();
+                $errors['general'] = 'This account is disabled. Contact the owner.';
             } else {
-                $errors['general'] = 'Invalid email or password.';
+                if ($user) {
+                    User::updateLastLogin((int) $user->id);
+                }
+                Response::redirect('/');
+            }
+        } else {
+            $fails = (int) Session::get('_login_fails', 0) + 1;
+            Session::set('_login_fails', $fails);
+            if ($fails >= 5) {
+                Session::set('_login_lock_until', time() + 900);
+                Session::set('_login_fails', 0);
+                $errors['general'] = 'Too many failed attempts. Please try again in 15 minutes.';
+            } else {
+                $errors['general'] = 'Invalid email or password. (' . $fails . '/5)';
             }
         }
 

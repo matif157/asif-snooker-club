@@ -1,11 +1,21 @@
+# Block access to dotfiles (e.g. .env if ever copied here)
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+# Disable directory listing
 Options -Indexes
-RewriteEngine On
 
-# Allow direct access to assets
-RewriteRule ^assets/ - [L]
-RewriteRule ^uploads/ - [L]
+# PHP hardening (Apache module mode)
+<IfModule mod_php.c>
+    php_flag display_errors off
+    php_flag log_errors on
+</IfModule>
 
-# Route everything else through index.php
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ index.php [QSA,L]
+# Friendly URLs
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>

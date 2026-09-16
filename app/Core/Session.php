@@ -9,6 +9,18 @@ class Session
     public static function start(): void
     {
         if (session_status() === PHP_SESSION_NONE) {
+            session_name('asifclub_session');
+            ini_set('session.use_strict_mode', '1');
+            ini_set('session.use_only_cookies', '1');
+            ini_set('session.use_trans_sid', '0');
+            session_set_cookie_params([
+                'lifetime' => 0,
+                'path'     => '/',
+                'domain'   => '',
+                'secure'   => self::isSecure(),
+                'httponly' => true,
+                'samesite' => 'Lax',
+            ]);
             session_start();
         }
     }
@@ -33,6 +45,13 @@ class Session
         unset($_SESSION[$key]);
     }
 
+    public static function regenerate(): void
+    {
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_regenerate_id(true);
+        }
+    }
+
     public static function destroy(): void
     {
         $_SESSION = [];
@@ -52,5 +71,12 @@ class Session
         $message = $_SESSION["_flash_{$key}"] ?? null;
         unset($_SESSION["_flash_{$key}"]);
         return $message;
+    }
+
+    private static function isSecure(): bool
+    {
+        return (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+            || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
+            || (int) ($_SERVER['SERVER_PORT'] ?? 0) === 443;
     }
 }

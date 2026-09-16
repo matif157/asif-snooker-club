@@ -206,13 +206,33 @@ Recommended: Shared hosting (Hostinger/Bluehost etc.) with PHP 8.2 & MySQL.
 Upload everything except `.env`, run `php database/install.php` via SSH or the installer,
 point the domain at `public/`.
 
+## Security & Hardening
+
+- **Session cookies** are `HttpOnly`, `SameSite=Lax` and flagged `Secure` over HTTPS
+  (`asifclub_session`), with strict-mode session management and ID rotation on login.
+- **Login throttling** — 5 failed attempts lock that browser session for 15 minutes.
+- **CSRF** — every state-changing form is protected by a per-session token; API routes
+  require authentication.
+- **Security headers** on every response: CSP, `X-Frame-Options: DENY`,
+  `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`, plus
+  `Strict-Transport-Security` when served over HTTPS (incl. behind ngrok).
+- **Production error handling** — with `APP_DEBUG=false`: friendly 500 page (JSON for
+  AJAX/API), PHP errors hidden, and full diagnostics written to
+  `storage/logs/app-YYYY-MM-DD.log` (git-ignored).
+- **Uploads** — backup restores accept only `.sql` under 20 MB; customer CSV imports are
+  parsed in-memory (no files stored).
+- The installer (`/install`) is only reachable before first setup; `.env` sits outside
+  `public/`, and a `public/.htaccess` blocks dotfiles + directory listing for Apache.
+- **Tunnel-friendly** — URLs/redirects derive from `X-Forwarded-Host`/`X-Forwarded-Proto`,
+  so the app behaves correctly behind ngrok (`ngrok http 8080` with `php -S 0.0.0.0:8080 -t public public/index.php`).
+
 ## Roadmap
 
 - [x] Phase 1: Auth, Tables, Customers, Sessions, Bookings, Payments, Dashboard
 - [x] Phase 2 (core): Expenses, Finance, Staff-ready RBAC, Reports (basic)
 - [x] Phase 3: Customer portal, notifications bell, theme manager (accent + per-user theme), role-permission manager
-- [ ] Phase 4: CCTV integration (RTSP → WebRTC), advanced analytics, custom fields
-- [ ] Phase 5: Installer wizard, backup/restore, multi-club readiness
+- [x] Phase 4 (partial): CCTV camera wall (per-table, RTSP → WebRTC still open), advanced analytics, custom fields
+- [x] Phase 5: Installer wizard, backup/restore, multi-club readiness
 
 ## License
 
