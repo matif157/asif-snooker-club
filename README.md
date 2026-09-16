@@ -99,6 +99,14 @@ Create the owner account during install (`php database/install.php`). Demo accou
 | Counter | `counter@asifclub.pk`| `Counter@2026`|
 | Counter | `shan@gmail.com`     | `Counter@2026`|
 
+## Staff Training Guide (Urdu)
+
+`docs/training-urdu/CRM-Asaan-Rehnuma-Urdu.pdf` — a 13-page, picture-based Urdu guide
+(Nastaliq headings + simple Roman Urdu) for counter staff: login, dashboard, booking a
+table, starting/ending a session, taking payment, and recording expenses. Every step is
+shown on a real annotated screenshot with numbered red guide-boxes. Regenerate it with
+`docs/training-urdu/manual.html` (print to A4).
+
 Default seeded tables: 6 snooker tables (4 Standard @ Rs 300/hr + 2 VIP @ Rs 400/hr).
 Portal login: **Ali Raza / PIN `1234`**.
 

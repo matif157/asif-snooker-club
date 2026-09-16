@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<title>ASIF SNOOKER CLUB — آسان رہنما</title>
+<style>
+  @page { size: A4; margin: 11mm 10mm; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color: #10151f; background: #fff; }
+  .ur { direction: rtl; text-align: right; font-family: "Noto Nastaliq Urdu", "DecoType Nastaleeq Urdu", serif; line-height: 2.15; }
+  .page { page-break-after: always; padding: 2mm 1mm; }
+  .page:last-child { page-break-after: auto; }
+
+  /* Cover */
+  .cover { text-align: center; padding-top: 22mm; }
+  .brand { font-size: 15px; letter-spacing: 3px; color: #059669; font-weight: 700; }
+  .cover .ur.title { font-size: 40px; line-height: 1.9; color: #0b0e14; margin: 8mm 0 2mm; }
+  .cover .sub-ur { font-size: 22px; }
+  .cover .roman { font-size: 20px; color: #475569; margin-top: 4mm; }
+  .cover .badge { display: inline-block; margin-top: 8mm; background: #10b981; color: #fff; font-weight: 800;
+                  padding: 10px 26px; border-radius: 999px; font-size: 20px; }
+  .qadam { margin: 10mm auto 0; max-width: 150mm; text-align: left; font-size: 19px; line-height: 1.9; }
+  .qadam li { margin: 1.5mm 0; }
+  .qadam b { color: #b91c1c; }
+
+  /* Section header */
+  .shead { display: flex; align-items: center; gap: 12px; border-bottom: 3px solid #10b981; padding-bottom: 4mm; margin-bottom: 5mm; }
+  .snum { background: #b91c1c; color: #fff; width: 46px; height: 46px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 800; flex: 0 0 46px; }
+  .stitle { font-size: 26px; font-weight: 800; }
+  .stitle-ur { font-size: 25px; }
+
+  .lead-ur { font-size: 22px; margin: 2mm 0; }
+  .lead-roman { font-size: 17px; color: #334155; margin: 1.5mm 0 3mm; }
+
+  figure { margin: 3mm 0; text-align: center; }
+  figure img { max-height: 100mm; width: auto; max-width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; }
+  figcaption { font-size: 15px; color: #64748b; margin-top: 1.5mm; }
+
+  .steps { margin: 2mm 0 0; padding: 0; list-style: none; }
+  .steps li { display: flex; align-items: flex-start; gap: 10px; margin: 2mm 0; font-size: 20px; }
+  .chip { background: #b91c1c; color: #fff; min-width: 34px; height: 34px; border-radius: 50%;
+          display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 19px; flex: 0 0 34px; }
+  .stx { line-height: 1.35; }
+  .stx .r { color: #475569; font-size: 16px; display: block; }
+  .stx .u { direction: rtl; text-align: right; font-family: "Noto Nastaliq Urdu", "DecoType Nastaleeq Urdu", serif; line-height: 2.0; display: block; font-size: 22px; }
+
+  .tip { background: #f0fdf4; border: 2px solid #10b981; border-radius: 12px; padding: 4mm 5mm; margin-top: 5mm; font-size: 19px; }
+  .tip .ur { font-size: 21px; }
+  .warn { background: #fff7ed; border: 2px solid #f59e0b; border-radius: 12px; padding: 4mm 5mm; margin-top: 5mm; font-size: 19px; }
+
+  .foot { margin-top: 6mm; border-top: 2px dashed #cbd5e1; padding-top: 2.5mm; display: flex;
+          justify-content: space-between; font-size: 13px; color: #94a3b8; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; align-items: start; }
+  .box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 4mm; }
+  .box h4 { margin: 0 0 2mm; font-size: 20px; }
+  .legend span { display: inline-block; margin: 0 8px 6px 0; font-size: 17px; }
+  .dot { display: inline-block; width: 13px; height: 13px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+</style>
+</head>
+<body>
+
+<!-- ================= COVER ================= -->
+<div class="page cover">
+  <div class="brand">ASIF SNOOKER CLUB &nbsp;•&nbsp; D GROUND, FAISALABAD</div>
+  <div class="ur title">اسنوکر کلب کمپیوٹر<br>آسان رہنما</div>
+  <div class="ur sub-ur">نیا سٹاف کے لیے — سات آسان قدم</div>
+  <div class="roman">Naye staff ke liye — sirf <b>7 aasan qadam</b></div>
+  <div class="badge">Customer aaya → Table book → Session → Payment</div>
+
+  <ol class="qadam">
+    <li><b>1.</b> Computer on karke login karen</li>
+    <li><b>2.</b> Home page (Dashboard) dekhen</li>
+    <li><b>3.</b> Customer ke liye table <b>book</b> karen</li>
+    <li><b>4.</b> Table par <b>session start</b> karen</li>
+    <li><b>5.</b> Session chalne dena — chai/extra charge lagayen</li>
+    <li><b>6.</b> Session band karke <b>payment</b> likhen</li>
+    <li><b>7.</b> Roz ka <b>kharcha</b> (expense) likhen</li>
+  </ol>
+</div>
+
+<!-- ================= STEP 1 LOGIN ================= -->
+<div class="page">
+  <div class="shead"><div class="snum">1</div><div><div class="stitle">Login</div><div class="ur stitle-ur">کمپیوٹر آن کریں اور لاگ اِن کریں</div></div></div>
+  <div class="ur lead-ur">ای میل اور پاس ورڈ لکھیں، پھر <b>سائن اِن</b> والا بٹن دبائیں۔</div>
+  <div class="lead-roman">Email aur password likhen, phir “Sign In” dabayen.</div>
+  <figure>
+    <img src="images/01-login.png" alt="Login screen">
+    <figcaption>Login screen — سرخ نمبر تصویر میں دیے گئے ہیں</figcaption>
+  </figure>
+  <ul class="steps">
+    <li><span class="chip">1</span><span class="stx"><span class="u">ای میل لکھیں</span><span class="r">Email likhen</span></span></li>
+    <li><span class="chip">2</span><span class="stx"><span class="u">پاس ورڈ لکھیں</span><span class="r">Password likhen</span></span></li>
+    <li><span class="chip">3</span><span class="stx"><span class="u">سائن اِن دبائیں</span><span class="r">Sign In dabayen</span></span></li>
+  </ul>
+  <div class="tip ur">یاد رکھیں: پاس ورڈ کسی کو نہ بتائیں۔ لاگ اِن ہونے کے بعد اپنا صفحہ خود کھل جائے گا۔</div>
+  <div class="foot"><span>ASIF SNOOKER CLUB</span><span>آسان رہنما — قدم 1</span></div>
+</div>
+
+<!-- ================= STEP 2 DASHBOARD ================= -->
+<div class="page">
+  <div class="shead"><div class="snum">2</div><div><div class="stitle">Dashboard</div><div class="ur stitle-ur">یہ ہوم پیج ہے</div></div></div>
+  <div class="ur lead-ur">یہاں ایک نظر میں سب کچھ نظر آتا ہے: کون سے ٹیبل چل رہے ہیں، آج کی آمدنی، اور ضروری پیغام۔</div>
+  <div class="lead-roman">Ek nazar mein sab kuch: chalte tables, aaj ki aamadni, aur zaroori paighaam.</div>
+  <figure>
+    <img src="images/02-dashboard.png" alt="Dashboard">
+    <figcaption>Dashboard — روزانہ کا خلاصہ</figcaption>
+  </figure>
+  <div class="two">
+    <div class="box"><h4 class="ur">اوپر والے خانے</h4><div class="ur" style="font-size:18px">چل رہے ٹیبل، آج کی آمدنی، نئے گاہک۔</div></div>
+    <div class="box"><h4 class="ur">پیغام والا خانہ</h4><div class="ur" style="font-size:18px">اگر پیسے یا خرچ کی منظوری رہ گئی ہو تو یہاں رنگین پیغام آئے گا۔</div></div>
+  </div>
+  <div class="foot"><span>ASIF SNOOKER CLUB</span><span>آسان رہنما — قدم 2</span></div>
+</div>
+
+<!-- ================= STEP 3 BOOKINGS ================= -->
+<div class="page">
+  <div class="shead"><div class="snum">3</div><div><div class="stitle">Table Booking</div><div class="ur stitle-ur">گاہک آیا — ٹیبل بُک کریں</div></div></div>
+  <div class="ur lead-ur">گاہک کہے: ”مجھے شام ۵ بجے ٹیبل چاہیے۔“ آپ یہ کریں:</div>
+  <figure>
+    <img src="images/05-bookings.png" alt="Bookings page">
+    <figcaption>Bookings صفحہ</figcaption>
+  </figure>
+  <ul class="steps">
+    <li><span class="chip">1</span><span class="stx"><span class="u">’نئی بکنگ‘ والا سبز بٹن دبائیں</span><span class="r">“New Booking” dabayen</span></span></li>
+    <li><span class="chip">2</span><span class="stx"><span class="u">نیچے خالی اور بُک شدہ ٹیبل دیکھیں (جامنی = بُک)</span><span class="r">Khaali / booked tables dekhen</span></span></li>
+  </ul>
+  <div class="foot"><span>ASIF SNOOKER CLUB</span><span>آسان رہنما — قدم 3</span></div>
+</div>
+
+<div class="page">
+  <div class="shead"><div class="snum">3</div><div><div class="stitle">Booking Details</div><div class="ur stitle-ur">تفصیل لکھیں اور محفوظ کریں</div></div></div>
+  <div class="ur lead-ur">یہ خانے بھریں: ٹیبل، تاریخ، وقت، گاہک کا نام اور فون۔ آخر میں ’محفوظ‘ دبائیں۔</div>
+  <figure>
+    <img src="images/06-new-booking-modal.png" alt="New booking form">
+    <figcaption>نئی بکنگ کا فارم</figcaption>
+  </figure>
+  <ul class="steps">
+    <li><span class="chip">1</span><span class="stx"><span class="u">ٹیبل چنیں</span><span class="r">Table chunen</span></span></li>
+    <li><span class="chip">2</span><span class="stx"><span class="u">تاریخ چنیں</span><span class="r">Date chunen</span></span></li>
+    <li><span class="chip">3</span><span class="stx"><span class="u">شروع کا وقت لکھیں</span><span class="r">Start time</span></span></li>
+    <li><span class="chip">4</span><span class="stx"><span class="u">ختم ہونے کا وقت لکھیں</span><span class="r">End time</span></span></li>
+    <li><span class="chip">5</span><span class="stx"><span class="u">نام اور فون لکھ کر ’محفوظ‘ دبائیں</span><span class="r">Name/phone likhen, Save dabayen</span></span></li>
+  </ul>
+  <div class="foot"><span>ASIF SNOOKER CLUB</span><span>آسان رہنما — قدم 3</span></div>
+</div>
+
+<!-- ================= STEP 4 SESSION START ================= -->
+<div class="page">
+  <div class="shead"><div class="snum">4</div><div><div class="stitle">Start Session</div><div class="ur stitle-ur">ٹیبل پر سیشن شروع کریں</div></div></div>
+  <div class="ur lead-ur">ٹیبل پر ماؤس لیں — ’اسٹارٹ‘ بٹن آئے گا، اس پر کلک کریں۔</div>
+  <div class="lead-roman">Table par mouse le jayen — “Start” button aayega.</div>
+  <figure>
+    <img src="images/03-tables.png" alt="Tables page">
+    <figcaption>Tables صفحہ — سرخ ① خالی ٹیبل، ② چل رہا ٹیبل</figcaption>
+  </figure>
+  <div class="tip ur">سبز رنگ = ٹیبل خالی ہے۔ سرسبز (بھرا) = سیشن چل رہا ہے۔ جامنی = ٹیبل بُک ہے۔</div>
+  <div class="foot"><span>ASIF SNOOKER CLUB</span><span>آسان رہنما — قدم 4</span></div>
+</div>
+
+<div class="page">
+  <div class="shead"><div class="snum">4</div><div><div class="stitle">Session Details</div><div class="ur stitle-ur">گاہک کی معلومات لکھیں</div></div></div>
+  <div class="ur lead-ur">گاہک کا نام ڈھونڈیں یا لکھیں، کھلاڑی اور ریٹ چنیں، پھر ’اسٹارٹ سیشن‘ دبائیں۔ گھڑی چل پڑے گی۔</div>
+  <figure>
+    <img src="images/04-start-modal.png" alt="Start session form">
+    <figcaption>سیشن شروع کرنے کا فارم</figcaption>
+  </figure>
+  <ul class="steps">
+    <li><span class="chip">1</span><span class="stx"><span class="u">گاہک کا نام لکھیں / ڈھونڈیں</span><span class="r">Customer name</span></span></li>
+    <li><span class="chip">2</span><span class="stx"><span class="u">کھلاڑی کتنے ہیں</span><span class="r">Players</span></span></li>
+    <li><span class="chip">3</span><span class="stx"><span class="u">ریٹ چنیں (گھنٹہ / فریم)</span><span class="r">Rate type</span></span></li>
+    <li><span class="chip">4</span><span class="stx"><span class="u">’اسٹارٹ سیشن‘ دبائیں</span><span class="r">Start Session</span></span></li>
+  </ul>
+  <div class="foot"><span>ASIF SNOOKER CLUB</span><span>آسان رہنما — قدم 4</span></div>
+</div>
+
+<!-- ================= STEP 5 DURING ================= -->
+<div class="page">
+  <div class="shead"><div class="snum">5</div><div><div class="stitle">During Session</div><div class="ur stitle-ur">سیشن چل رہا ہے</div></div></div>
+  <div class="ur lead-ur">وقت اور پیسہ خود بڑھتا رہتا ہے۔ چائے یا اضافی چیز ہو تو ’چارج‘ دبائیں، اور کام کے بعد ’اینڈ‘ سے سیشن بند کریں۔</div>
+  <figure>
+    <img src="images/07-active-sessions.png" alt="Active sessions">
+    <figcaption>چل رہے سیشن — ① سیشن کارڈ، ② بند کرنے کا بٹن</figcaption>
+  </figure>
+  <ul class="steps">
+    <li><span class="chip">1</span><span class="stx"><span class="u">سیشن اور گھڑی دیکھیں</span><span class="r">Session + timer dekhen</span></span></li>
+    <li><span class="chip">2</span><span class="stx"><span class="u">چائے/اضافی چیز ہو تو ’چارج‘، ورنہ ’اینڈ‘ دبائیں</span><span class="r">Charge ya End</span></span></li>
+  </ul>
+  <div class="warn ur">دھیان رکھیں: سیشن بند کرنے سے پہلے گاہک سے کہہ دیں کہ وقت پورا ہو گیا ہے۔</div>
+  <div class="foot"><span>ASIF SNOOKER CLUB</span><span>آسان رہنما — قدم 5</span></div>
+</div>
+
+<!-- ================= STEP 6 PAYMENT ================= -->
+<div class="page">
+  <div class="shead"><div class="snum">6</div><div><div class="stitle">Payment</div><div class="ur stitle-ur">پیسے لیں اور پیمنٹ لکھیں</div></div></div>
+  <div class="ur lead-ur">گاہک سے پیسے لیں۔ رقم اور طریقہ (کیش / جاز کیش / بینک) لکھیں، پھر ’ریکارڈ‘ دبائیں۔</div>
+  <figure>
+    <img src="images/11-pay-modal.png" alt="Payment form">
+    <figcaption>پیمنٹ لکھنے کا فارم</figcaption>
+  </figure>
+  <ul class="steps">
+    <li><span class="chip">1</span><span class="stx"><span class="u">رقم لکھیں</span><span class="r">Amount</span></span></li>
+    <li><span class="chip">2</span><span class="stx"><span class="u">طریقہ چنیں (کیش وغیرہ)</span><span class="r">Method</span></span></li>
+    <li><span class="chip">3</span><span class="stx"><span class="u">نوٹ لکھیں (اگر ضروری ہو)</span><span class="r">Note / reference</span></span></li>
+    <li><span class="chip">4</span><span class="stx"><span class="u">’ریکارڈ‘ دبائیں</span><span class="r">Record dabayen</span></span></li>
+  </ul>
+  <div class="tip ur">نقدی لیں تو پیمنٹ ضرور لکھیں — تاکہ دن کے آخر میں حساب نہ پھنسے۔</div>
+  <div class="foot"><span>ASIF SNOOKER CLUB</span><span>آسان رہنما — قدم 6</span></div>
+</div>
+
+<!-- ================= STEP 7 EXPENSES ================= -->
+<div class="page">
+  <div class="shead"><div class="snum">7</div><div><div class="stitle">Expenses</div><div class="ur stitle-ur">روز کا خرچہ لکھیں</div></div></div>
+  <div class="ur lead-ur">چائے، صفائی، مرمت — جو خرچ ہو، ’نیا خرچہ‘ میں لکھ دیں۔</div>
+  <figure>
+    <img src="images/09-expenses.png" alt="Expenses page">
+    <figcaption>خرچے کا صفحہ — ① ’نیا خرچہ‘ والا بٹن</figcaption>
+  </figure>
+  <ul class="steps">
+    <li><span class="chip">1</span><span class="stx"><span class="u">’نیا خرچہ‘ دبائیں</span><span class="r">New Expense</span></span></li>
+    <li><span class="chip">2</span><span class="stx"><span class="u">کھاتہ (کیٹیگری)، رقم اور تفصیل لکھیں</span><span class="r">Category, amount, details</span></span></li>
+    <li><span class="chip">3</span><span class="stx"><span class="u">’محفوظ‘ دبائیں</span><span class="r">Save</span></span></li>
+  </ul>
+  <div class="foot"><span>ASIF SNOOKER CLUB</span><span>آسان رہنما — قدم 7</span></div>
+</div>
+
+<!-- ================= EXTRA: CUSTOMERS ================= -->
+<div class="page">
+  <div class="shead"><div class="snum">+</div><div><div class="stitle">Customers</div><div class="ur stitle-ur">گاہک کی معلومات</div></div></div>
+  <div class="ur lead-ur">نام یا فون لکھ کر پرانا گاہک ڈھونڈیں۔ نیا گاہک ’نیا گاہک‘ بٹن سے شامل کریں۔</div>
+  <figure>
+    <img src="images/08-customers.png" alt="Customers page">
+    <figcaption>گاہک کا صفحہ — ① نیا گاہک، ② تلاش کریں</figcaption>
+  </figure>
+  <ul class="steps">
+    <li><span class="chip">1</span><span class="stx"><span class="u">’نیا گاہک‘ شامل کریں</span><span class="r">Add customer</span></span></li>
+    <li><span class="chip">2</span><span class="stx"><span class="u">نام / فون لکھ کر پرانا گاہک ڈھونڈیں</span><span class="r">Search old customer</span></span></li>
+  </ul>
+  <div class="foot"><span>ASIF SNOOKER CLUB</span><span>آسان رہنما — اضافی</span></div>
+</div>
+
+<!-- ================= EXTRA: SESSIONS HISTORY ================= -->
+<div class="page">
+  <div class="shead"><div class="snum">+</div><div><div class="stitle">History</div><div class="ur stitle-ur">پرانا حساب دیکھیں</div></div></div>
+  <div class="ur lead-ur">کسی بھی دن کا حساب ’سیشن‘ میں دیکھیں — پرانا یا چل رہا سیشن یہاں ملے گا۔</div>
+  <figure>
+    <img src="images/10-sessions.png" alt="Sessions list">
+    <figcaption>سیشن کی فہرست</figcaption>
+  </figure>
+  <div class="box legend">
+    <h4 class="ur">رنگوں کا مطلب</h4>
+    <span><span class="dot" style="background:#34d399"></span>خالی / چل رہا</span>
+    <span><span class="dot" style="background:#818cf8"></span>بُک (رکھا ہوا)</span>
+    <span><span class="dot" style="background:#fbbf24"></span>وقت ختم ہونے والا</span>
+    <span><span class="dot" style="background:#f87171"></span>مرمت / خراب</span>
+  </div>
+  <div class="foot"><span>ASIF SNOOKER CLUB</span><span>آسان رہنما — اضافی</span></div>
+</div>
+
+<!-- ================= CLOSING ================= -->
+<div class="page">
+  <div class="shead"><div class="snum">★</div><div><div class="stitle">Remember</div><div class="ur stitle-ur">یاد رکھنے کی باتیں</div></div></div>
+  <ul class="steps">
+    <li><span class="chip" style="background:#10b981">✓</span><span class="stx"><span class="u">کوئی کام ادھورا نہ چھوڑیں — آخر میں ’محفوظ‘ ضرور دبائیں۔</span><span class="r">Save zaroor dabayen</span></span></li>
+    <li><span class="chip" style="background:#10b981">✓</span><span class="stx"><span class="u">غلطی ہو جائے تو ڈریں نہیں — ٹھیک کر کے دوبارہ لکھیں۔</span><span class="r">Ghalti ho to theek karen</span></span></li>
+    <li><span class="chip" style="background:#10b981">✓</span><span class="stx"><span class="u">نقدی لیں تو ’پیمنٹ‘ ضرور لکھیں۔</span><span class="r">Cash lein to payment likhen</span></span></li>
+    <li><span class="chip" style="background:#10b981">✓</span><span class="stx"><span class="u">سیشن بند کرنا نہ بھولیں، ورنہ گھڑی چلتی رہے گی۔</span><span class="r">Session waqt par band karen</span></span></li>
+  </ul>
+  <div class="tip" style="text-align:center">
+    <div class="ur" style="font-size:24px">مدد کے لیے رابطہ کریں</div>
+    <div style="font-size:22px;font-weight:700;margin-top:2mm">ASIF SNOOKER CLUB — 92 300 00000000000</div>
+    <div class="ur" style="font-size:20px">ڈی گراؤنڈ، فیصل آباد</div>
+  </div>
+  <div class="foot"><span>ASIF SNOOKER CLUB</span><span>آسان رہنما — شکریہ</span></div>
+</div>
+
+</body>
+</html>
