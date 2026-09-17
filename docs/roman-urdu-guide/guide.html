@@ -236,20 +236,25 @@
   <div class="card ans"><span class="lead-line">Faida:</span> “Aaj kitna bana?” is sawal ka jawab 1 second me — bina kisi se poochhe.</div>
 
   <h3>3.3 Tables (Command Center)</h3>
-  <figure><img src="images/03-tables.png"><figcaption>Tables board — har table ka live status.</figcaption></figure>
+  <figure><img src="images/03-tables.png"><figcaption>Tables board — har table ka live status, player names, client, waqt aur amount.</figcaption></figure>
   <ul>
     <li>Table add/edit/delete aur on/off (maintenance) karna</li>
     <li>Har table par: free, running, ya reserved</li>
-    <li>Running table par customer, chalta hua waqt aur amount</li>
+    <li>Running table par: <b>winner vs loser ke naam</b>, client ka naam, shuru/expected end ka waqt, aur chalta hua amount</li>
+    <li>Amount khud update hota hai (timer wala rate ya <b>fixed amount</b> jo aap ne set kiya)</li>
+    <li>Har card par payment status: Paid, Partial, ya <b>Udhaar</b></li>
+    <li>Har table ke saath <b>camera ki live jhalak</b> (thumbnail) — signal na ho to “No signal” likha aata hai</li>
     <li>Live updates (SSE) — refresh ki zaroorat nahi</li>
   </ul>
-  <div class="card ans"><span class="lead-line">Faida:</span> Counter par bheed ho ya na ho — har table ka hisaab nazar me rehta hai, koi table bhoolti nahi.</div>
+  <div class="card ans"><span class="lead-line">Faida:</span> Counter par bheed ho ya na ho — har table ka hisaab, khelne wale ke naam, aur camera sab nazar me rehta hai. Koi table bhoolti nahi aur koi jhagra nahi.</div>
 
   <h3>3.4 Booking (Aane se Pehle Table Reserved)</h3>
-  <figure><img src="images/05-bookings.png"><figcaption>Bookings list — kis waqt, kis customer ki booking.</figcaption></figure>
-  <figure><img src="images/06-new-booking-modal.png"><figcaption>Nayi booking — customer, table, waqt aur advance.</figcaption></figure>
+  <figure><img src="images/05-bookings.png"><figcaption>Bookings list — kis waqt, kis customer ki booking, player aur charge.</figcaption></figure>
+  <figure><img src="images/06-new-booking-modal.png"><figcaption>Nayi booking — customer, table, waqt, winner/loser, charge aur payment method.</figcaption></figure>
   <ul>
     <li>Aage ke liye table book karna, customer aur waqt ke saath</li>
+    <li><b>Winner aur loser</b> ke naam pehle se likhna — match ka record ban jata hai</li>
+    <li><b>Agreed charge</b> (fixed amount) aur <b>payment method</b> (Cash / JazzCash / Online) save karna</li>
     <li>Advance payment lena</li>
     <li>Calendar view — poora mahina ek nazar me</li>
     <li>Booking status: confirmed, completed, cancelled</li>
@@ -257,27 +262,42 @@
   <div class="card ans"><span class="lead-line">Faida:</span> Regular customer ki table pehle se reserved — double booking nahi, aur advance bhi mil jata hai.</div>
 
   <h3>3.5 Session Start / End (Timer aur Bill)</h3>
-  <figure><img src="images/04-start-modal.png"><figcaption>Session start — customer select karke foran shuru.</figcaption></figure>
-  <figure><img src="images/07-active-sessions.png"><figcaption>Active sessions — har table ka chalta hua waqt.</figcaption></figure>
+  <figure><img src="images/04-start-modal.png"><figcaption>Session start — winner/loser, client, phone, charge mode aur payment.</figcaption></figure>
+  <figure><img src="images/24-start-fixed.png"><figcaption>Session start (Fixed Amount) — pehle se tay amount, foran “Pay Now” ya “Pay Later”.</figcaption></figure>
   <ul>
-    <li>Customer chunein aur session shuru — timer khud chal padta hai</li>
-    <li>Beech me extra charge (coaching, extra player, khana) add karna</li>
-    <li>Discount dena (permission ke saath, audit me record)</li>
-    <li>Session end par bill khud ban jata hai aur invoice print/share</li>
+    <li><b>Winner aur loser</b> ke naam, client ka naam aur phone number likhein</li>
+    <li>Do tareeqe: <b>Live Timer</b> (ghanta chalega) ya <b>Fixed Amount</b> (tay paisa — frame/package)</li>
+    <li>Expected end ka waqt — staff ko pata rehta hai kab table free hogi</li>
+    <li>Payment timing: <b>Pay Now</b> (abhi cash/online) ya <b>Pay Later</b> (udhaar)</li>
+    <li>Beech me extra charge (coaching, extra player, khana) add karna aur discount dena</li>
+    <li>Session end par: kitna paisa abhi liya aur kis method se — baqi khud udhaar me chala jata hai</li>
     <li>Session history aur CSV export</li>
   </ul>
-  <div class="card ans"><span class="lead-line">Faida:</span> Manual ghadi/hisaab khatam. Timer aur rate khud — jhagra nahi, leakage nahi.</div>
+  <div class="card ans"><span class="lead-line">Faida:</span> Manual ghadi/hisaab khatam. Pehle se tay naam (winner/loser) aur amount — session end par jhagra nahi, leakage nahi.</div>
+  <figure><img src="images/22-end-modal.png"><figcaption>Session end — amount due dikhta hai, abhi kitna liya aur method chunein.</figcaption></figure>
+  <figure><img src="images/07-active-sessions.png"><figcaption>Active sessions — har table ka chalta hua waqt, player aur payment status.</figcaption></figure>
   <figure><img src="images/10-sessions.png"><figcaption>Session history — har session ka poora record.</figcaption></figure>
 
   <h3>3.6 Payment (Aaya Paisa)</h3>
   <figure><img src="images/11-pay-modal.png"><figcaption>Payment — poora, aadha (partial) ya baad me.</figcaption></figure>
   <ul>
     <li>Poora ya partial payment; baqi amount outstanding me chala jata hai</li>
-    <li>Cash / online mode</li>
+    <li>Payment method: <b>Cash, JazzCash, Online / Bank, Card</b></li>
     <li>Receipt print ya share</li>
     <li>Payment list aur export</li>
   </ul>
-  <div class="card ans"><span class="lead-line">Faida:</span> Kisi ka udhaar bhoolta nahi. Kis ne kitna diya, kab diya — sab record.</div>
+  <div class="card ans"><span class="lead-line">Faida:</span> Kisi ka udhaar bhoolta nahi. Kis ne kitna diya, kis method se, kab diya — sab record.</div>
+
+  <h3>3.6.1 Udhaar / Loans (Baqaya Paisa — Ek Jagah)</h3>
+  <figure><img src="images/23-loans.png"><figcaption>Udhaar page — total baqaya, customers aur loan history.</figcaption></figure>
+  <p>Jab koi customer poora paisa na de, to baqi amount us ke naam <b>udhaar</b> ban jata hai. Ye page sirf udhaar ke liye banaya gaya hai:</p>
+  <ul>
+    <li>Total outstanding (kitna paisa bahar hai) ek nazar me</li>
+    <li>Har customer ka baqaya — phone ke saath, taake foran rabta ho</li>
+    <li>“Receive Payment” se udhaar wapas jama karna (Cash / JazzCash / Online)</li>
+    <li>Loan history — kis session ne kitna udhaar banaya aur kitna wapas aaya</li>
+  </ul>
+  <div class="card ans"><span class="lead-line">Faida:</span> Bahar phansa paisa pehchana jata hai aur wapas wasool hota hai. Pehle ye paisa sirf yaad par chalta tha — ab system yaad rakhta hai.</div>
 
   <h3>3.7 Customers (Asal Sarmaya)</h3>
   <figure><img src="images/08-customers.png"><figcaption>Customer list — kitna khela, kitna kharch kiya.</figcaption></figure>

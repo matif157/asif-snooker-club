@@ -71,10 +71,10 @@
   <ol class="qadam">
     <li><b>1.</b> Computer on karke login karen</li>
     <li><b>2.</b> Home page (Dashboard) dekhen</li>
-    <li><b>3.</b> Customer ke liye table <b>book</b> karen</li>
-    <li><b>4.</b> Table par <b>session start</b> karen</li>
+    <li><b>3.</b> Customer ke liye table <b>book</b> karen (player + charge)</li>
+    <li><b>4.</b> Table par <b>session start</b> karen (winner/loser + client)</li>
     <li><b>5.</b> Session chalne dena — chai/extra charge lagayen</li>
-    <li><b>6.</b> Session band karke <b>payment</b> likhen</li>
+    <li><b>6.</b> Session band karke <b>payment</b> likhen (baqi = udhaar)</li>
     <li><b>7.</b> Roz ka <b>kharcha</b> (expense) likhen</li>
   </ol>
 </div>
@@ -140,7 +140,8 @@
     <li><span class="chip">2</span><span class="stx"><span class="u">تاریخ چنیں</span><span class="r">Date chunen</span></span></li>
     <li><span class="chip">3</span><span class="stx"><span class="u">شروع کا وقت لکھیں</span><span class="r">Start time</span></span></li>
     <li><span class="chip">4</span><span class="stx"><span class="u">ختم ہونے کا وقت لکھیں</span><span class="r">End time</span></span></li>
-    <li><span class="chip">5</span><span class="stx"><span class="u">نام اور فون لکھ کر ’محفوظ‘ دبائیں</span><span class="r">Name/phone likhen, Save dabayen</span></span></li>
+    <li><span class="chip">5</span><span class="stx"><span class="u">جیتنے/ہارنے والے کے نام لکھیں</span><span class="r">Winner / loser</span></span></li>
+    <li><span class="chip">6</span><span class="stx"><span class="u">طے شدہ رقم اور طریقہ چنیں، پھر ’محفوظ‘ دبائیں</span><span class="r">Charge + method, Save</span></span></li>
   </ul>
   <div class="foot"><span>ASIF SNOOKER CLUB</span><span>آسان رہنما — قدم 3</span></div>
 </div>
@@ -159,18 +160,24 @@
 </div>
 
 <div class="page">
-  <div class="shead"><div class="snum">4</div><div><div class="stitle">Session Details</div><div class="ur stitle-ur">گاہک کی معلومات لکھیں</div></div></div>
-  <div class="ur lead-ur">گاہک کا نام ڈھونڈیں یا لکھیں، کھلاڑی اور ریٹ چنیں، پھر ’اسٹارٹ سیشن‘ دبائیں۔ گھڑی چل پڑے گی۔</div>
+  <div class="shead"><div class="snum">4</div><div><div class="stitle">Session Details</div><div class="ur stitle-ur">کھلاڑیوں کے نام اور پیسے لکھیں</div></div></div>
+  <div class="ur lead-ur">جیتنے والے اور ہارنے والے کے نام لکھیں، گاہک کا نام اور فون لکھیں، پھر چنیں کہ پیسہ گھڑی سے بنے گا یا طے شدہ رقم ہے۔ آخر میں ’اسٹارٹ سیشن‘ دبائیں۔</div>
   <figure>
     <img src="images/04-start-modal.png" alt="Start session form">
     <figcaption>سیشن شروع کرنے کا فارم</figcaption>
   </figure>
   <ul class="steps">
-    <li><span class="chip">1</span><span class="stx"><span class="u">گاہک کا نام لکھیں / ڈھونڈیں</span><span class="r">Customer name</span></span></li>
-    <li><span class="chip">2</span><span class="stx"><span class="u">کھلاڑی کتنے ہیں</span><span class="r">Players</span></span></li>
-    <li><span class="chip">3</span><span class="stx"><span class="u">ریٹ چنیں (گھنٹہ / فریم)</span><span class="r">Rate type</span></span></li>
-    <li><span class="chip">4</span><span class="stx"><span class="u">’اسٹارٹ سیشن‘ دبائیں</span><span class="r">Start Session</span></span></li>
+    <li><span class="chip">1</span><span class="stx"><span class="u">جیتنے والے کا نام لکھیں</span><span class="r">Winner ka naam</span></span></li>
+    <li><span class="chip">2</span><span class="stx"><span class="u">ہارنے والے کا نام لکھیں</span><span class="r">Loser ka naam</span></span></li>
+    <li><span class="chip">3</span><span class="stx"><span class="u">گاہک کا نام اور فون لکھیں</span><span class="r">Client name + phone</span></span></li>
+    <li><span class="chip">4</span><span class="stx"><span class="u">چنیں: گھڑی (Timer) یا طے شدہ رقم (Fixed)</span><span class="r">Charge mode</span></span></li>
+    <li><span class="chip">5</span><span class="stx"><span class="u">’اسٹارٹ سیشن‘ دبائیں</span><span class="r">Start Session</span></span></li>
   </ul>
+  <figure>
+    <img src="images/24-start-fixed.png" alt="Fixed amount session form">
+    <figcaption>طے شدہ رقم (Fixed Amount) — ابھی پیسہ لیں (Pay Now) یا بعد میں (Pay Later / ادھار)</figcaption>
+  </figure>
+  <div class="tip ur">اگر طے شدہ رقم ہے اور گاہک ابھی پیسے نہیں دے رہا تو <b>Pay Later</b> چنیں اور فون نمبر ضرور لکھیں — ورنہ ادھار کا حساب نہیں رہے گا۔</div>
   <div class="foot"><span>ASIF SNOOKER CLUB</span><span>آسان رہنما — قدم 4</span></div>
 </div>
 
@@ -190,6 +197,23 @@
   <div class="foot"><span>ASIF SNOOKER CLUB</span><span>آسان رہنما — قدم 5</span></div>
 </div>
 
+<div class="page">
+  <div class="shead"><div class="snum">5</div><div><div class="stitle">End Session</div><div class="ur stitle-ur">سیشن بند کریں اور پیسے لیں</div></div></div>
+  <div class="ur lead-ur">’اینڈ‘ دبائیں — سکرین پر کل رقم آ جائے گی۔ ابھی جتنے پیسے ملے وہ لکھیں اور طریقہ چنیں (کیش / جاز کیش / آن لائن)۔ باقی رقم خود بخود ادھار میں چلی جائے گی۔</div>
+  <figure>
+    <img src="images/22-end-modal.png" alt="End session form">
+    <figcaption>سیشن بند کرنے کا فارم — کل رقم، وصول رقم اور طریقہ</figcaption>
+  </figure>
+  <ul class="steps">
+    <li><span class="chip">1</span><span class="stx"><span class="u">کل رقم دیکھیں</span><span class="r">Total amount dekhen</span></span></li>
+    <li><span class="chip">2</span><span class="stx"><span class="u">ابھی ملنے والی رقم لکھیں (پورا نہ ملے تو کم لکھیں)</span><span class="r">Received amount</span></span></li>
+    <li><span class="chip">3</span><span class="stx"><span class="u">طریقہ چنیں (کیش / جاز کیش / آن لائن)</span><span class="r">Payment method</span></span></li>
+    <li><span class="chip">4</span><span class="stx"><span class="u">’سیشن بند کریں‘ دبائیں</span><span class="r">End Session dabayen</span></span></li>
+  </ul>
+  <div class="tip ur">پورا پیسہ نہ ملے تو گھبرائیں نہیں — باقی رقم گاہک کے ادھار میں محفوظ ہو جائے گی، بعد میں وصول کر لیں۔</div>
+  <div class="foot"><span>ASIF SNOOKER CLUB</span><span>آسان رہنما — قدم 5</span></div>
+</div>
+
 <!-- ================= STEP 6 PAYMENT ================= -->
 <div class="page">
   <div class="shead"><div class="snum">6</div><div><div class="stitle">Payment</div><div class="ur stitle-ur">پیسے لیں اور پیمنٹ لکھیں</div></div></div>
@@ -206,6 +230,23 @@
   </ul>
   <div class="tip ur">نقدی لیں تو پیمنٹ ضرور لکھیں — تاکہ دن کے آخر میں حساب نہ پھنسے۔</div>
   <div class="foot"><span>ASIF SNOOKER CLUB</span><span>آسان رہنما — قدم 6</span></div>
+</div>
+
+<!-- ================= EXTRA: UDHAAR / LOANS ================= -->
+<div class="page">
+  <div class="shead"><div class="snum">+</div><div><div class="stitle">Udhaar / Loans</div><div class="ur stitle-ur">ادھار اور باقی پیسہ</div></div></div>
+  <div class="ur lead-ur">جس گاہک نے پورے پیسے نہیں دیے، اُس کا باقی پیسہ ’ادھار‘ میں آ جاتا ہے۔ ’ادھار‘ والے صفحے پر دیکھیں کہ کس نے کتنا دینا ہے۔</div>
+  <figure>
+    <img src="images/23-loans.png" alt="Loans page">
+    <figcaption>ادھار کا صفحہ — کل باقی رقم، گاہک اور واپسی کی تفصیل</figcaption>
+  </figure>
+  <ul class="steps">
+    <li><span class="chip">1</span><span class="stx"><span class="u">دیکھیں کہ کس کا کتنا ادھار ہے</span><span class="r">Kis ka kitna udhaar</span></span></li>
+    <li><span class="chip">2</span><span class="stx"><span class="u">’وصول کریں‘ (Receive Payment) دبائیں</span><span class="r">Receive Payment</span></span></li>
+    <li><span class="chip">3</span><span class="stx"><span class="u">رقم اور طریقہ لکھ کر ’محفوظ‘ دبائیں</span><span class="r">Amount + method, Save</span></span></li>
+  </ul>
+  <div class="tip ur">فون نمبر کے ذریعے گاہک سے رابطہ کر کے ادھار واپس لیں — یہ پیسہ ورنہ بھول جاتا ہے۔</div>
+  <div class="foot"><span>ASIF SNOOKER CLUB</span><span>آسان رہنما — اضافی</span></div>
 </div>
 
 <!-- ================= STEP 7 EXPENSES ================= -->
@@ -265,6 +306,7 @@
     <li><span class="chip" style="background:#10b981">✓</span><span class="stx"><span class="u">غلطی ہو جائے تو ڈریں نہیں — ٹھیک کر کے دوبارہ لکھیں۔</span><span class="r">Ghalti ho to theek karen</span></span></li>
     <li><span class="chip" style="background:#10b981">✓</span><span class="stx"><span class="u">نقدی لیں تو ’پیمنٹ‘ ضرور لکھیں۔</span><span class="r">Cash lein to payment likhen</span></span></li>
     <li><span class="chip" style="background:#10b981">✓</span><span class="stx"><span class="u">سیشن بند کرنا نہ بھولیں، ورنہ گھڑی چلتی رہے گی۔</span><span class="r">Session waqt par band karen</span></span></li>
+    <li><span class="chip" style="background:#10b981">✓</span><span class="stx"><span class="u">پورا پیسہ نہ ملے تو ’ادھار‘ میں دیکھیں — باقی رقم وہیں محفوظ رہتی ہے۔</span><span class="r">Udhaar page check karen</span></span></li>
   </ul>
   <div class="tip" style="text-align:center">
     <div class="ur" style="font-size:24px">مدد کے لیے رابطہ کریں</div>
