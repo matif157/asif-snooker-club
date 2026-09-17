@@ -13,9 +13,16 @@ class Payment extends BaseModel
     public const METHODS = [
         'cash'         => 'Cash',
         'jazzcash'     => 'JazzCash',
-        'bank_transfer' => 'Bank Transfer',
+        'bank_transfer' => 'Online / Bank',
         'card'         => 'Card',
         'other'        => 'Other',
+    ];
+
+    /** Accepted method aliases mapped to the canonical enum value. */
+    public const METHOD_ALIASES = [
+        'online' => 'bank_transfer',
+        'bank'   => 'bank_transfer',
+        'easypaisa' => 'jazzcash',
     ];
 
     public const STATUSES = [
@@ -27,8 +34,18 @@ class Payment extends BaseModel
         'partial'   => 'Partially Paid',
     ];
 
-    public static function todayRevenueByMethod(): array
+    /** Map a user-supplied method (cash / jazzcash / online …) to the enum. */
+    public static function normalizeMethod(?string $method): string
     {
+        $method = strtolower(trim((string) $method));
+        if (isset(self::METHOD_ALIASES[$method])) {
+            $method = self::METHOD_ALIASES[$method];
+        }
+
+        return array_key_exists($method, self::METHODS) ? $method : 'cash';
+    }
+
+    public static function todayRevenueByMethod(): array    {
         return Database::query(
             "SELECT method, COALESCE(SUM(amount), 0) AS total, COUNT(*) AS count
              FROM payments

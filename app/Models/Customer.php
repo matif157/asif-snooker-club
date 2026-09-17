@@ -177,6 +177,23 @@ class Customer extends BaseModel
         );
     }
 
+    /**
+     * Increase (positive) or reduce (negative) a customer's loan balance.
+     * Never lets the ledger go below zero, and returns the new balance.
+     */
+    public static function adjustOutstanding(int $customerId, float $delta): float
+    {
+        Database::execute(
+            'UPDATE customers
+             SET outstanding_balance = GREATEST(0, outstanding_balance + ?)
+             WHERE id = ?',
+            [$delta, $customerId]
+        );
+
+        $row = Database::fetchOne('SELECT outstanding_balance FROM customers WHERE id = ?', [$customerId]);
+        return (float) ($row['outstanding_balance'] ?? 0);
+    }
+
     public static function normalizePhone(string $phone): string
     {
         $digits = preg_replace('/\D+/', '', $phone) ?? '';

@@ -109,6 +109,8 @@
                             <th>Table</th>
                             <th>Customer</th>
                             <th>Players</th>
+                            <th class="text-right">Charge</th>
+                            <th>Method</th>
                             <th>Status</th>
                             <th class="text-right">Actions</th>
                         </tr>
@@ -139,11 +141,38 @@
                                         </a>
                                     <?php endif; ?>
                                     <?php $paid = (float) ($bookingsPaid[$b['id']] ?? 0); ?>
-                                    <?php if ($paid > 0): ?>
-                                        <p class="text-[11px] text-emerald-400 font-medium mt-0.5">Paid Rs <?= number_format($paid) ?></p>
+                                </td>
+                                <td class="text-slate-400">
+                                    <?php
+                                        $bkPlayers = array_values(array_filter([
+                                            trim((string) ($b['player_winner'] ?? '')),
+                                            trim((string) ($b['player_loser'] ?? '')),
+                                        ]));
+                                    ?>
+                                    <?php if ($bkPlayers !== []): ?>
+                                        <span class="text-slate-200"><?= e(implode(' vs ', $bkPlayers)) ?></span><br>
+                                    <?php endif; ?>
+                                    <span class="text-[11px] text-slate-500"><?= (int) ($b['players_count'] ?? 0) ?> player(s)</span>
+                                </td>
+                                <td class="text-right">
+                                    <?php if ($b['amount'] > 0): ?>
+                                        <span class="font-semibold <?= ($paid > 0 && $paid < (float) $b['amount']) ? 'text-amber-400' : 'text-white' ?>">
+                                            Rs <?= number_format((float) $b['amount']) ?>
+                                        </span>
+                                        <?php if ($paid > 0): ?>
+                                            <span class="block text-[11px] text-emerald-400">Paid Rs <?= number_format($paid) ?></span>
+                                        <?php endif; ?>
+                                    <?php else: ?>
+                                        <span class="text-slate-600">—</span>
                                     <?php endif; ?>
                                 </td>
-                                <td class="text-slate-400"><?= (int) ($b['players_count'] ?? 0) ?></td>
+                                <td>
+                                    <?php if (!empty($b['payment_method'])): ?>
+                                        <span class="badge badge-sky"><?= e(\App\Models\Payment::METHODS[$b['payment_method']] ?? $b['payment_method']) ?></span>
+                                    <?php else: ?>
+                                        <span class="text-slate-600">—</span>
+                                    <?php endif; ?>
+                                </td>
                                 <td>
                                     <span class="badge badge-<?= e(\App\Models\Booking::STATUS_COLORS[$b['status']] ?? 'slate') ?>">
                                         <?= e(\App\Models\Booking::STATUS_LABELS[$b['status']] ?? $b['status'] ?? '') ?>
@@ -304,6 +333,40 @@
                             <label class="block text-xs font-medium text-slate-400 mb-1.5">Players</label>
                             <input type="number" name="players_count" value="2" min="1" max="20"
                                    class="w-full bg-ink-850 border border-white/10 rounded-xl text-sm text-white px-4 py-2.5 focus:ring-2 focus:ring-emerald-500/50 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1.5">Winner</label>
+                            <input type="text" name="player_winner"
+                                   class="w-full bg-ink-850 border border-white/10 rounded-xl text-sm text-white px-4 py-2.5 placeholder-slate-500 focus:ring-2 focus:ring-emerald-500/50 focus:outline-none"
+                                   placeholder="Winning player (optional)">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1.5">Loser</label>
+                            <input type="text" name="player_loser"
+                                   class="w-full bg-ink-850 border border-white/10 rounded-xl text-sm text-white px-4 py-2.5 placeholder-slate-500 focus:ring-2 focus:ring-emerald-500/50 focus:outline-none"
+                                   placeholder="Losing player (optional)">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1.5">Agreed Charge (Rs)</label>
+                            <input type="number" name="amount" min="0" step="1"
+                                   class="w-full bg-ink-850 border border-white/10 rounded-xl text-sm text-white px-4 py-2.5 placeholder-slate-500 focus:ring-2 focus:ring-emerald-500/50 focus:outline-none"
+                                   placeholder="Optional fixed amount">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1.5">Payment Method</label>
+                            <select name="payment_method"
+                                    class="w-full bg-ink-850 border border-white/10 rounded-xl text-sm text-white px-4 py-2.5 focus:ring-2 focus:ring-emerald-500/50 focus:outline-none">
+                                <option value="">—</option>
+                                <?php foreach (\App\Models\Payment::METHODS as $key => $label): ?>
+                                    <option value="<?= e($key) ?>"><?= e($label) ?></option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
                     </div>
 

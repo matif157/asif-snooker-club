@@ -43,7 +43,7 @@ $totalToday = array_sum(array_column($todayRev, 'total'));
         $methodIcons = [
             'cash'           => ['color' => 'emerald', 'label' => 'Cash'],
             'jazzcash'       => ['color' => 'sky',     'label' => 'JazzCash'],
-            'bank_transfer'  => ['color' => 'violet',  'label' => 'Bank'],
+            'bank_transfer'  => ['color' => 'violet',  'label' => 'Online'],
             'card'           => ['color' => 'amber',   'label' => 'Card'],
             'other'          => ['color' => 'slate',   'label' => 'Other'],
         ];

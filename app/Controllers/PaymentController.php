@@ -92,12 +92,13 @@ class PaymentController extends Controller
 
         $customerId = (int) ($data['customer_id'] ?? 0);
         $sessionId  = (int) ($data['session_id'] ?? 0);
+        $method     = Payment::normalizeMethod($data['method'] ?? 'cash');
 
         $paymentId = Payment::create([
             'session_id'     => $sessionId > 0 ? $sessionId : null,
             'customer_id'    => $customerId > 0 ? $customerId : null,
             'amount'         => (float) $data['amount'],
-            'method'         => $data['method'],
+            'method'         => $method,
             'status'         => 'paid',
             'transaction_ref'=> $data['transaction_ref'] ?? null,
             'notes'          => $data['notes'] ?? null,
@@ -109,32 +110,24 @@ class PaymentController extends Controller
         if ($sessionId > 0) {
             $session = ClubSession::find($sessionId);
             if ($session) {
-                $paidRow = Database::fetchOne(
-                    "SELECT COALESCE(SUM(amount),0) AS t FROM payments
-                     WHERE session_id = ? AND status = 'paid'",
-                    [$sessionId]
-                );
-                $paidTotal = (float) ($paidRow['t'] ?? 0);
+                $paidTotal = ClubSession::paidTotal($sessionId);
                 $session->update([
                     'payment_status' => $paidTotal >= (float) $session->amount ? 'paid' : 'partial',
-                    'payment_method' => $data['method'],
+                    'payment_method' => $method,
                 ]);
             }
         }
 
-        // Update customer outstanding if linked
+        // Settle any loan balance against the customer's ledger.
         if ($customerId > 0 && (float) $data['amount'] > 0) {
-            Database::execute(
-                'UPDATE customers SET outstanding_balance = GREATEST(0, outstanding_balance - ?) WHERE id = ?',
-                [(float) $data['amount'], $customerId]
-            );
+            Customer::adjustOutstanding($customerId, -(float) $data['amount']);
         }
 
         \App\Services\AuditService::log('payment_received', 'payment', $paymentId, null, [
             'customer' => $customerId ?: null,
             'session'  => $sessionId ?: null,
             'amount'   => (float) $data['amount'],
-            'method'   => $data['method'],
+            'method'   => $method,
         ]);
 
         if (Request::isAjax()) {
@@ -175,7 +168,7 @@ class PaymentController extends Controller
         }
 
         $amount = (float) (Request::input('amount') ?? $session->amount);
-        $method = Request::input('method') ?? 'cash';
+        $method = Payment::normalizeMethod(Request::input('method') ?? 'cash');
 
         $customerId = $session->customer_id;
 
@@ -189,16 +182,18 @@ class PaymentController extends Controller
             'accepted_by' => current_user()?->id ?? null,
         ]);
 
+        $paidTotal = ClubSession::paidTotal((int) $session->id);
+        $remaining = max(0, round((float) $session->amount - $paidTotal, 2));
+
         $session->update([
-            'payment_status' => 'paid',
+            'payment_status' => $remaining <= 0.009 ? 'paid' : 'partial',
             'payment_method' => $method,
+            'is_loan'        => ($remaining > 0 && $customerId) ? 1 : 0,
+            'loan_amount'    => ($remaining > 0 && $customerId) ? $remaining : 0,
         ]);
 
         if ($customerId) {
-            Database::execute(
-                'UPDATE customers SET outstanding_balance = GREATEST(0, outstanding_balance - ?) WHERE id = ?',
-                [$amount, $customerId]
-            );
+            Customer::adjustOutstanding((int) $customerId, -$amount);
         }
 
         \App\Services\AuditService::log('payment_received', 'payment', $paymentId, null, [
@@ -207,6 +202,11 @@ class PaymentController extends Controller
             'method'  => $method,
         ]);
 
-        Response::success(['payment_id' => $paymentId, 'amount' => $amount], 'Payment accepted');
+        Response::success([
+            'payment_id'     => $paymentId,
+            'amount'         => $amount,
+            'remaining'      => $remaining,
+            'payment_status' => $remaining <= 0.009 ? 'paid' : 'partial',
+        ], 'Payment accepted');
     }
 }

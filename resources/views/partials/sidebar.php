@@ -66,6 +66,11 @@ $isActive = fn(string $path) => str_starts_with($uri, $path) || $uri === $path ?
             Payments
         </a>
 
+        <a href="/loans" class="nav-item <?php if (str_starts_with($uri, '/loans')) echo 'active'; ?>">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v8m0 0l3-3m-3 3l-3-3M4 6h16M4 18h16"/><circle cx="12" cy="12" r="9"/></svg>
+            Udhaar / Loans
+        </a>
+
         <a href="/expenses" class="nav-item <?php if (str_starts_with($uri, '/expenses')) echo 'active'; ?>">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
             Expenses

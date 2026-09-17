@@ -30,6 +30,14 @@ class ClubSession extends BaseModel
         'custom'   => 'Custom',
     ];
 
+    public const CHARGE_TIMER = 'timer';
+    public const CHARGE_FIXED = 'fixed';
+
+    public const CHARGE_TYPES = [
+        'timer' => 'Timer (per hour)',
+        'fixed' => 'Fixed amount',
+    ];
+
     public function table(): ?array
     {
         return Table::find((int) $this->table_id)?->toArray();
@@ -65,35 +73,56 @@ class ClubSession extends BaseModel
 
     /**
      * Compute current charge given rate type & elapsed seconds.
+     * When the session is a fixed-charge booking the agreed
+     * fixed_amount is used instead of time-based billing.
      */
     public function computeAmount(?\DateTimeInterface $now = null): float
     {
-        $now = $now ?? new \DateTimeImmutable();
         $seconds = $this->billedSeconds($now);
 
-        $rate = (float) $this->rate;
-        if ($rate <= 0) {
-            $rate = (float) ($this->table()['hourly_rate'] ?? 300);
-        }
+        if (($this->charge_type ?? self::CHARGE_TIMER) === self::CHARGE_FIXED
+            && $this->fixed_amount !== null
+            && (float) $this->fixed_amount > 0) {
+            $amount = (float) $this->fixed_amount;
+        } else {
+            $rate = (float) $this->rate;
+            if ($rate <= 0) {
+                $rate = (float) ($this->table()['hourly_rate'] ?? 300);
+            }
 
-        $hours = $seconds / 3600.0;
-        $amount = round($hours * $rate, 0);
+            $hours = $seconds / 3600.0;
+            $amount = round($hours * $rate, 0);
 
-        // Apply minimum charge
-        $minCharge = (float) ($this->table()['min_charge'] ?? 100);
-        if ($amount < $minCharge && $seconds > 0) {
-            $amount = $minCharge;
-        }
+            // Apply minimum charge
+            $minCharge = (float) ($this->table()['min_charge'] ?? 100);
+            if ($amount < $minCharge && $seconds > 0) {
+                $amount = $minCharge;
+            }
 
-        // Round up to nearest 10 (common in Pakistani clubs)
-        if ($amount > 0) {
-            $amount = ceil($amount / 10) * 10;
+            // Round up to nearest 10 (common in Pakistani clubs)
+            if ($amount > 0) {
+                $amount = ceil($amount / 10) * 10;
+            }
         }
 
         $amount += (float) $this->extra_charges;
         $amount -= (float) $this->discount;
 
         return max(0, $amount);
+    }
+
+    /**
+     * Total amount already received for this session.
+     */
+    public static function paidTotal(int $sessionId): float
+    {
+        $row = Database::fetchOne(
+            "SELECT COALESCE(SUM(amount), 0) AS t FROM payments
+             WHERE session_id = ? AND status = 'paid'",
+            [$sessionId]
+        );
+
+        return (float) ($row['t'] ?? 0);
     }
 
     public static function activeSessions(): array

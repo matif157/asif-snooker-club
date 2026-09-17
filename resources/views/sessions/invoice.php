@@ -33,9 +33,13 @@ $duration  = max(0, (strtotime($s['end_time'] ?? 'now') - strtotime($s['start_ti
     <!-- Billed to -->
     <div class="mb-5">
         <p class="text-[11px] uppercase tracking-wider text-slate-400 mb-1">Billed To</p>
-        <p class="font-semibold text-slate-900"><?= e($s['customer_name'] ?? 'Walk-in Customer') ?></p>
+        <p class="font-semibold text-slate-900"><?= e($s['client_name'] ?? $s['customer_name'] ?? 'Walk-in Customer') ?></p>
         <?php if (!empty($s['customer_phone'])): ?>
             <p class="text-sm text-slate-500"><?= e($s['customer_phone']) ?></p>
+        <?php endif; ?>
+        <?php $invPlayers = array_values(array_filter([$s['player_winner'] ?? '', $s['player_loser'] ?? ''])); ?>
+        <?php if ($invPlayers !== []): ?>
+            <p class="text-sm text-slate-500 mt-0.5"><?= e(implode(' vs ', $invPlayers)) ?></p>
         <?php endif; ?>
     </div>
 
@@ -54,11 +58,21 @@ $duration  = max(0, (strtotime($s['end_time'] ?? 'now') - strtotime($s['start_ti
                     Snooker session — Table #<?= (int) $s['table_number'] ?> (<?= e($s['table_name'] ?? '') ?>)
                     <div class="text-xs text-slate-500 mt-0.5">
                         <?= date('g:i A', strtotime($s['start_time'])) ?> — <?= date('g:i A', strtotime($s['end_time'] ?? $s['start_time'])) ?>
-                        · <?= gmdate('H:i:s', $duration) ?> billed
-                        · <?= e($rateTypes[$s['rate_type']] ?? $s['rate_type']) ?>
+                        <?php if (($s['charge_type'] ?? 'timer') === 'fixed'): ?>
+                            · Fixed package
+                        <?php else: ?>
+                            · <?= gmdate('H:i:s', $duration) ?> billed
+                            · <?= e($rateTypes[$s['rate_type']] ?? $s['rate_type']) ?>
+                        <?php endif; ?>
                     </div>
                 </td>
-                <td class="text-right whitespace-nowrap text-slate-700"><?= $currency ?> <?= number_format((float) $s['rate']) ?>/hr</td>
+                <td class="text-right whitespace-nowrap text-slate-700">
+                    <?php if (($s['charge_type'] ?? 'timer') === 'fixed'): ?>
+                        Fixed
+                    <?php else: ?>
+                        <?= $currency ?> <?= number_format((float) $s['rate']) ?>/hr
+                    <?php endif; ?>
+                </td>
                 <td class="text-right font-semibold text-slate-900"><?= $currency ?> <?= number_format($amount) ?></td>
             </tr>
             <?php if ($extra > 0): ?>
@@ -87,9 +101,19 @@ $duration  = max(0, (strtotime($s['end_time'] ?? 'now') - strtotime($s['start_ti
             <span class="text-xl font-black <?= $due > 0 ? 'text-rose-600' : 'text-emerald-600' ?>"><?= $currency ?> <?= number_format($due) ?></span>
         </div>
         <div class="flex justify-between text-xs text-slate-500">
+            <span>Payment Method</span>
+            <span class="font-medium text-slate-700"><?= e(\App\Models\Payment::METHODS[$s['payment_method'] ?? ''] ?? ($s['payment_method'] ?? '—')) ?></span>
+        </div>
+        <div class="flex justify-between text-xs text-slate-500">
             <span>Status</span>
             <span class="uppercase font-semibold"><?= e($s['payment_status'] ?? 'unpaid') ?></span>
         </div>
+        <?php if ((float) ($s['loan_amount'] ?? 0) > 0): ?>
+        <div class="flex justify-between text-xs text-rose-600">
+            <span>On Udhaar (loan)</span>
+            <span class="font-semibold"><?= $currency ?> <?= number_format((float) $s['loan_amount']) ?></span>
+        </div>
+        <?php endif; ?>
     </div>
 
     <!-- Footer -->

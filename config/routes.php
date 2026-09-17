@@ -8,6 +8,7 @@ use App\Controllers\CameraController;
 use App\Controllers\CustomerController;
 use App\Controllers\DashboardController;
 use App\Controllers\ExpenseController;
+use App\Controllers\LoanController;
 use App\Controllers\PaymentController;
 use App\Controllers\PortalController;
 use App\Controllers\ReminderController;
@@ -77,6 +78,9 @@ $router->get('/payments/export', [PaymentController::class, 'export']);
 $router->post('/payments', [PaymentController::class, 'store']);
 $router->get('/payments/{id}/receipt', [PaymentController::class, 'receipt']);
 
+// Loans / Udhaar
+$router->get('/loans', [LoanController::class, 'index']);
+
 // Expenses
 $router->get('/expenses', [ExpenseController::class, 'index']);
 $router->get('/expenses/export', [ExpenseController::class, 'export']);
@@ -133,6 +137,7 @@ $router->post('/api/tables/{id}/start', [SessionController::class, 'apiStart']);
 $router->post('/api/sessions/{id}/end', [SessionController::class, 'apiEnd']);
 $router->post('/api/sessions/{id}/charge', [SessionController::class, 'apiAddCharge']);
 $router->post('/api/sessions/{id}/discount', [SessionController::class, 'apiDiscount']);
+$router->post('/api/sessions/{id}/players', [SessionController::class, 'apiUpdatePlayers']);
 $router->post('/api/sessions/{id}/pay', [PaymentController::class, 'apiPay']);
 $router->get('/api/customers/search', [CustomerController::class, 'apiSearch']);
 $router->get('/api/dashboard/stats', [DashboardController::class, 'apiStats']);

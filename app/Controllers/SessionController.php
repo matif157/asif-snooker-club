@@ -191,27 +191,121 @@ class SessionController extends Controller
             Response::error('Table is not available');
         }
 
-        $customerId  = (int) (Request::input('customer_id') ?? 0);
+        $customerId   = (int) (Request::input('customer_id') ?? 0);
         $playersCount = max(1, (int) (Request::input('players_count') ?? 1));
-        $rateType    = Request::input('rate_type') ?? 'hourly';
-        $notes       = Request::input('notes') ?? '';
+        $rateType     = Request::input('rate_type') ?? 'hourly';
+        $notes        = trim((string) (Request::input('notes') ?? ''));
+
+        $winner = trim((string) (Request::input('player_winner') ?? ''));
+        $loser  = trim((string) (Request::input('player_loser') ?? ''));
+
+        // Charge mode: live timer vs an agreed fixed amount.
+        $chargeType = (string) (Request::input('charge_type') ?? ClubSession::CHARGE_TIMER);
+        if (!in_array($chargeType, [ClubSession::CHARGE_TIMER, ClubSession::CHARGE_FIXED], true)) {
+            $chargeType = ClubSession::CHARGE_TIMER;
+        }
+        $fixedAmount = round((float) (Request::input('fixed_amount') ?? 0), 2);
+        if ($chargeType === ClubSession::CHARGE_FIXED && $fixedAmount <= 0) {
+            Response::error('Fixed amount is required when charge type is fixed.');
+        }
+
+        $expectedEnd = $this->normaliseDateTime((string) (Request::input('expected_end_time') ?? ''));
+
+        $method  = \App\Models\Payment::normalizeMethod(Request::input('payment_method') ?? 'cash');
+        $payMode = (string) (Request::input('pay_mode') ?? 'later');
+        if (!in_array($payMode, ['now', 'later'], true)) {
+            $payMode = 'later';
+        }
+
+        // Resolve the customer / client identity. A pay-later balance must be
+        // traceable, so a phone number lets us reuse or create the customer.
+        $clientName    = trim((string) (Request::input('client_name') ?? ''));
+        $customerName  = trim((string) (Request::input('customer_name') ?? ''));
+        $customerPhone = trim((string) (Request::input('customer_phone') ?? ''));
+
+        if ($customerId <= 0 && $customerPhone !== '') {
+            $existing = Customer::findByPhone($customerPhone);
+            if ($existing) {
+                $customerId = (int) $existing['id'];
+            } else {
+                $customerId = Customer::create([
+                    'name'       => $customerName !== '' ? $customerName : ('Walk-in ' . $customerPhone),
+                    'phone'      => Customer::normalizePhone($customerPhone),
+                    'category'   => 'regular',
+                    'status'     => 'active',
+                    'created_at' => date('Y-m-d H:i:s'),
+                ]);
+            }
+        }
+
+        if ($customerId > 0) {
+            $customer = Customer::find($customerId);
+            if ($customer) {
+                if ($clientName === '') {
+                    $clientName = (string) $customer->name;
+                }
+                if ($customerPhone === '') {
+                    $customerPhone = (string) ($customer->phone ?? '');
+                }
+            } else {
+                $customerId = 0;
+            }
+        }
+
+        if ($clientName === '') {
+            $clientName = $winner !== '' ? $winner : ($loser !== '' ? $loser : 'Walk-in');
+        }
+
+        // Paying now only makes sense when the amount is already known.
+        if ($payMode === 'now' && $chargeType !== ClubSession::CHARGE_FIXED) {
+            $payMode = 'later';
+        }
+        // Loan/udhaar needs somebody to bill.
+        if ($payMode === 'later' && $chargeType === ClubSession::CHARGE_FIXED && $fixedAmount > 0 && $customerId <= 0) {
+            Response::error('Pay-later (udhaar) ke liye customer ka naam aur phone zaroori hai.');
+        }
 
         // Auto-resolve rate band (peak/off-peak/night) unless manually overridden
         $resolved = \App\Services\RateService::resolveRate($rateType, $table->toArray());
         $rateType = $resolved['rate_type'];
         $rate     = $resolved['rate'];
 
+        $payNow = $payMode === 'now' && $chargeType === ClubSession::CHARGE_FIXED && $fixedAmount > 0;
+
         $sessionId = ClubSession::create([
-            'table_id'       => (int) $table->id,
-            'customer_id'    => $customerId > 0 ? $customerId : null,
-            'players_count'  => $playersCount,
-            'start_time'     => date('Y-m-d H:i:s'),
-            'rate_type'      => $rateType,
-            'rate'           => $rate,
-            'status'         => 'active',
-            'notes'          => $notes,
-            'staff_id'       => current_user()?->id ?? null,
+            'table_id'          => (int) $table->id,
+            'customer_id'       => $customerId > 0 ? $customerId : null,
+            'player_winner'     => $winner !== '' ? $winner : null,
+            'player_loser'      => $loser !== '' ? $loser : null,
+            'client_name'       => $clientName !== '' ? $clientName : null,
+            'players_count'     => $playersCount,
+            'start_time'        => date('Y-m-d H:i:s'),
+            'expected_end_time' => $expectedEnd,
+            'rate_type'         => $rateType,
+            'charge_type'       => $chargeType,
+            'fixed_amount'      => $chargeType === ClubSession::CHARGE_FIXED ? $fixedAmount : null,
+            'rate'              => $rate,
+            'payment_method'    => $method,
+            'payment_status'    => $payNow ? 'paid' : 'unpaid',
+            'is_loan'           => ($payMode === 'later' && $chargeType === ClubSession::CHARGE_FIXED) ? 1 : 0,
+            'status'            => 'active',
+            'notes'             => $notes !== '' ? $notes : null,
+            'staff_id'          => current_user()?->id ?? null,
         ]);
+
+        // Immediate payment for a fixed-charge booking.
+        if ($payNow) {
+            \App\Models\Payment::create([
+                'session_id'  => $sessionId,
+                'customer_id' => $customerId > 0 ? $customerId : null,
+                'amount'      => $fixedAmount,
+                'method'      => $method,
+                'status'      => 'paid',
+                'notes'       => 'Paid at session start',
+                'paid_at'     => date('Y-m-d H:i:s'),
+                'accepted_by' => current_user()?->id ?? null,
+            ]);
+        }
 
         $table->update(['status' => 'occupied']);
 
@@ -219,10 +313,17 @@ class SessionController extends Controller
         $activatedBooking = \App\Models\Booking::activateForTable((int) $table->id);
 
         \App\Services\AuditService::log('session_started', 'session', $sessionId, null, [
-            'table'   => (int) $table->id,
-            'customer'=> $customerId ?: null,
-            'rate'    => $rate,
-            'booking' => $activatedBooking,
+            'table'        => (int) $table->id,
+            'customer'     => $customerId ?: null,
+            'client'       => $clientName,
+            'winner'       => $winner ?: null,
+            'loser'        => $loser ?: null,
+            'charge_type'  => $chargeType,
+            'fixed_amount' => $chargeType === ClubSession::CHARGE_FIXED ? $fixedAmount : null,
+            'rate'         => $rate,
+            'method'       => $method,
+            'pay_mode'     => $payMode,
+            'booking'      => $activatedBooking,
         ]);
 
         Response::success([
@@ -230,6 +331,39 @@ class SessionController extends Controller
             'table'      => $table->toArray(),
             'booking_activated' => $activatedBooking,
         ], 'Session started');
+    }
+
+    /**
+     * Edit the winner / loser (and client label) of a live session.
+     */
+    public function apiUpdatePlayers(int $id): void
+    {
+        if (!user_can('sessions.manage')) {
+            Response::error('Forbidden', 403);
+        }
+
+        $session = ClubSession::find($id);
+        if (!$session || in_array($session->status, ['completed', 'cancelled'], true)) {
+            Response::error('Session not found or already closed', 404);
+        }
+
+        $patch = [];
+        foreach (['player_winner' => 'player_winner', 'player_loser' => 'player_loser', 'client_name' => 'client_name'] as $field => $key) {
+            if (Request::input($field) !== null) {
+                $val = trim((string) Request::input($field));
+                $patch[$key] = $val !== '' ? $val : null;
+            }
+        }
+
+        if ($patch === []) {
+            Response::error('Nothing to update');
+        }
+
+        $session->update($patch);
+
+        \App\Services\AuditService::log('session_players_updated', 'session', $id, null, $patch);
+
+        Response::success(['session' => $session->toArray()], 'Players updated');
     }
 
     public function apiEnd(int $id): void
@@ -243,15 +377,52 @@ class SessionController extends Controller
             Response::error('Session not found or already ended', 404);
         }
 
-        $amount = $session->computeAmount();
+        $amount  = $session->computeAmount();
         $elapsed = $session->billedSeconds();
-        $hours = $elapsed / 3600.0;
+        $hours   = $elapsed / 3600.0;
+
+        $method = \App\Models\Payment::normalizeMethod(
+            Request::input('method') ?? $session->payment_method ?? 'cash'
+        );
+
+        // Optional settlement collected right at the end of the session.
+        $payAmount = round((float) (Request::input('pay_amount') ?? 0), 2);
+        if ($payAmount > 0) {
+            \App\Models\Payment::create([
+                'session_id'  => (int) $session->id,
+                'customer_id' => $session->customer_id ? (int) $session->customer_id : null,
+                'amount'      => $payAmount,
+                'method'      => $method,
+                'status'      => 'paid',
+                'notes'       => 'Payment at session end',
+                'paid_at'     => date('Y-m-d H:i:s'),
+                'accepted_by' => current_user()?->id ?? null,
+            ]);
+        }
+
+        $paid      = ClubSession::paidTotal((int) $session->id);
+        $remaining = max(0, round($amount - $paid, 2));
+
+        $paymentStatus = $remaining <= 0.009
+            ? 'paid'
+            : ($paid > 0 ? 'partial' : 'unpaid');
+
+        // A leftover balance on a linked customer becomes a loan (udhaar).
+        $isLoan     = 0;
+        $loanAmount = 0.0;
+        if ($remaining > 0 && $session->customer_id) {
+            $isLoan     = 1;
+            $loanAmount = $remaining;
+        }
 
         $session->update([
-            'end_time'      => date('Y-m-d H:i:s'),
-            'amount'        => $amount,
-            'status'        => 'completed',
-            'payment_status'=> 'unpaid',
+            'end_time'       => date('Y-m-d H:i:s'),
+            'amount'         => $amount,
+            'status'         => 'completed',
+            'payment_status' => $paymentStatus,
+            'payment_method' => $method,
+            'is_loan'        => $isLoan,
+            'loan_amount'    => $loanAmount,
         ]);
 
         $table = TableModel::find((int) $session->table_id);
@@ -266,21 +437,43 @@ class SessionController extends Controller
             [(int) $session->table_id]
         );
 
-        // Update customer stats if linked
+        // Update customer stats if linked — only the unpaid remainder becomes
+        // outstanding, so paying in full never creates a phantom loan.
         if ($session->customer_id) {
-            Customer::incrementStats((int) $session->customer_id, $hours, $amount, $amount);
+            Customer::incrementStats((int) $session->customer_id, $hours, $amount, $loanAmount);
         }
 
         \App\Services\AuditService::log('session_ended', 'session', $session->id, null, [
-            'table'  => (int) $session->table_id,
-            'amount' => $amount,
+            'table'          => (int) $session->table_id,
+            'amount'         => $amount,
+            'paid'           => $paid,
+            'remaining'      => $remaining,
+            'payment_status' => $paymentStatus,
+            'loan'           => $loanAmount,
         ]);
 
         Response::success([
-            'session_id' => $session->id,
-            'amount'     => $amount,
-            'duration'   => $elapsed,
+            'session_id'     => $session->id,
+            'amount'         => $amount,
+            'paid'           => $paid,
+            'remaining'      => $remaining,
+            'payment_status' => $paymentStatus,
+            'loan_amount'    => $loanAmount,
+            'duration'       => $elapsed,
         ], 'Session ended');
+    }
+
+    /**
+     * Parse a browser datetime-local value into a MySQL DATETIME (or null).
+     */
+    private function normaliseDateTime(string $value): ?string
+    {
+        $value = trim($value);
+        if ($value === '') {
+            return null;
+        }
+        $ts = strtotime($value);
+        return $ts !== false ? date('Y-m-d H:i:s', $ts) : null;
     }
 
     public function apiAddCharge(int $id): void

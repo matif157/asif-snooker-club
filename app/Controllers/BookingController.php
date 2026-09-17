@@ -9,6 +9,7 @@ use App\Core\Database;
 use App\Core\Request;
 use App\Core\Response;
 use App\Models\Booking;
+use App\Models\Customer;
 use App\Models\Table as TableModel;
 use App\Services\CsvService;
 
@@ -190,10 +191,14 @@ class BookingController extends Controller
             'customer_id'    => $customerId > 0 ? $customerId : null,
             'customer_name'  => $data['customer_name'],
             'customer_phone' => $data['customer_phone'] ?? null,
+            'player_winner'  => trim((string) ($data['player_winner'] ?? '')) ?: null,
+            'player_loser'   => trim((string) ($data['player_loser'] ?? '')) ?: null,
             'booking_date'   => $date,
             'start_time'     => $start,
             'end_time'       => $end,
             'players_count'  => max(1, (int) ($data['players_count'] ?? 2)),
+            'amount'         => ($data['amount'] ?? '') !== '' ? (float) $data['amount'] : null,
+            'payment_method' => isset($data['payment_method']) ? \App\Models\Payment::normalizeMethod($data['payment_method']) : null,
             'status'         => 'requested',
             'notes'          => $data['notes'] ?? null,
             'created_by'     => current_user()?->id ?? null,
@@ -218,10 +223,7 @@ class BookingController extends Controller
             return;
         }
 
-        $method = (string) ($data['advance_method'] ?? 'cash');
-        if (!in_array($method, ['cash', 'jazzcash', 'bank_transfer', 'card', 'other'], true)) {
-            return;
-        }
+        $method = \App\Models\Payment::normalizeMethod($data['advance_method'] ?? 'cash');
 
         Database::insert(
             "INSERT INTO payments (booking_id, customer_id, amount, method, status, transaction_ref, notes, paid_at, accepted_by)
@@ -253,13 +255,10 @@ class BookingController extends Controller
         }
 
         $amount = (float) (Request::input('amount') ?? 0);
-        $method = (string) (Request::input('method') ?? 'cash');
+        $method = \App\Models\Payment::normalizeMethod(Request::input('method') ?? 'cash');
 
         if ($amount <= 0) {
             Response::error('Amount must be greater than zero.');
-        }
-        if (!in_array($method, ['cash', 'jazzcash', 'bank_transfer', 'card', 'other'], true)) {
-            Response::error('Invalid payment method.');
         }
 
         Database::insert(
@@ -275,6 +274,11 @@ class BookingController extends Controller
                 current_user()?->id ?? null,
             ]
         );
+
+        // If the booking was already closed out as a loan, settle that balance.
+        if ($booking->customer_id && $booking->status === 'completed') {
+            Customer::adjustOutstanding((int) $booking->customer_id, -$amount);
+        }
 
         if (Request::isAjax()) {
             Response::success([], 'Payment recorded');
@@ -312,9 +316,30 @@ class BookingController extends Controller
 
         $booking->update(['status' => $status]);
 
+        // When a booking is closed, any unpaid remainder on a linked customer
+        // becomes a loan (udhaar) so it is not lost.
+        if ($status === 'completed' && $booking->customer_id) {
+            $amount = (float) ($booking->amount ?? 0);
+            if ($amount > 0) {
+                $paidRow = Database::fetchOne(
+                    "SELECT COALESCE(SUM(amount),0) AS t FROM payments WHERE booking_id = ? AND status = 'paid'",
+                    [(int) $booking->id]
+                );
+                $remaining = max(0, round($amount - (float) ($paidRow['t'] ?? 0), 2));
+                if ($remaining > 0) {
+                    Customer::adjustOutstanding((int) $booking->customer_id, $remaining);
+                    \App\Services\AuditService::log('booking_loan', 'booking', (int) $booking->id, null, [
+                        'customer'  => (int) $booking->customer_id,
+                        'remaining' => $remaining,
+                    ]);
+                }
+            }
+        }
+
         if (Request::isAjax()) {
             Response::success(['status' => $status], 'Booking updated');
         }
         Response::redirect('/bookings');
     }
 }
+

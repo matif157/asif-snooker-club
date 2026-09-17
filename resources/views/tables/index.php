@@ -104,20 +104,76 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
                 </div>
                 <p class="text-xs text-slate-400 mb-2 truncate"><?= e($table['name']) ?></p>
 
-<?php if ($isOccupied && $session): ?>
-                     <div class="flex items-center gap-1.5 mb-2">
-                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-emerald-400 timer-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                         <span class="text-xs font-mono text-emerald-400 font-semibold timer-display"
-                               data-start="<?= date('U', strtotime($session['start_time'])) ?>"
-                               data-paused="<?= e((string)($session['paused_total_sec'] ?? 0)) ?>"
-                               data-status="<?= e($session['status'] ?? '') ?>">
-                             <?= format_duration($elapsed) ?>
-                         </span>
-                     </div>
-                    <?php if (!empty($session['customer_name'])): ?>
-                        <p class="text-[11px] text-slate-400 truncate mb-1"><?= e($session['customer_name']) ?></p>
+                <?php if (!empty($canViewCctv)): ?>
+                    <div class="relative mb-2 rounded-lg overflow-hidden bg-black/50 ring-1 ring-white/10 aspect-video">
+                        <?php if (!empty($table['camera']['hls_url'])): ?>
+                            <video class="table-cam w-full h-full object-cover" muted autoplay playsinline
+                                   data-hls-src="<?= e($table['camera']['hls_url']) ?>"></video>
+                            <button type="button" title="Fullscreen"
+                                    data-player="<?= e($table['camera']['player_url'] ?? '') ?>"
+                                    onclick="event.stopPropagation(); openCam(this)"
+                                    class="absolute bottom-1 right-1 p-1 rounded-md bg-black/60 text-slate-300 hover:text-white opacity-0 group-hover:opacity-100 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                            </button>
+                        <?php else: ?>
+                            <div class="w-full h-full flex flex-col items-center justify-center text-slate-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/><path stroke-linecap="round" d="M3 3l18 18"/></svg>
+                                <span class="text-[10px] mt-0.5">No signal</span>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($isOccupied && $session):
+                    $players = array_values(array_filter([
+                        trim((string) ($session['player_winner'] ?? '')),
+                        trim((string) ($session['player_loser'] ?? '')),
+                    ]));
+                    $clientLabel = trim((string) ($session['client_name'] ?? ''));
+                    if ($clientLabel === '') { $clientLabel = trim((string) ($session['customer_name'] ?? '')); }
+                    if ($clientLabel === '' && $players !== []) { $clientLabel = implode(' vs ', $players); }
+                    $startTxt = date('g:i A', strtotime($session['start_time']));
+                    $endTxt   = !empty($session['expected_end_time']) ? date('g:i A', strtotime($session['expected_end_time'])) : null;
+                    $isFixed  = ($session['charge_type'] ?? 'timer') === 'fixed';
+                    $payStatus = (string) ($session['payment_status'] ?? 'unpaid');
+                    if (!$isFixed) {
+                        $rate = (float) ($session['rate'] ?? $table['hourly_rate']);
+                        $min  = (float) ($table['min_charge'] ?? 100);
+                        $est  = $elapsed > 0 ? round(($elapsed / 3600) * $rate) : 0;
+                        if ($elapsed > 0 && $est < $min) { $est = $min; }
+                        $est = (int) (ceil($est / 10) * 10);
+                    }
+                ?>
+                    <div class="flex items-center gap-1.5 mb-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-emerald-400 timer-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span class="text-xs font-mono text-emerald-400 font-semibold timer-display"
+                              data-start="<?= date('U', strtotime($session['start_time'])) ?>"
+                              data-paused="<?= e((string) ($session['paused_total_sec'] ?? 0)) ?>"
+                              data-status="<?= e($session['status'] ?? '') ?>">
+                            <?= format_duration($elapsed) ?>
+                        </span>
+                    </div>
+                    <?php if ($players !== []): ?>
+                        <p class="text-[11px] text-white/90 font-medium truncate mb-0.5"><?= e(implode(' vs ', $players)) ?></p>
                     <?php endif; ?>
-                    <p class="text-[11px] text-emerald-400/70 font-medium tracking-wide">Rs <?= number_format((float)($session['rate'] ?? $table['hourly_rate'])) ?>/hr</p>
+                    <?php if ($clientLabel !== ''): ?>
+                        <p class="text-[11px] text-slate-400 truncate mb-0.5"><?= e($clientLabel) ?></p>
+                    <?php endif; ?>
+                    <p class="text-[10px] text-slate-500 mb-1.5">
+                        <?= e($startTxt) ?><?= $endTxt ? ' &rarr; ' . e($endTxt) : '' ?>
+                    </p>
+                    <div class="flex items-center justify-between gap-1">
+                        <?php if ($isFixed): ?>
+                            <span class="text-[11px] font-semibold text-white tile-fixed" data-amount="<?= (float) ($session['fixed_amount'] ?? 0) ?>">Rs <?= number_format((float) ($session['fixed_amount'] ?? 0)) ?></span>
+                        <?php else: ?>
+                            <span class="text-[11px] font-semibold text-emerald-400 tile-amount"
+                                  data-rate="<?= (float) ($session['rate'] ?? $table['hourly_rate']) ?>"
+                                  data-min-charge="<?= (float) ($table['min_charge'] ?? 100) ?>">Rs <?= number_format($est) ?></span>
+                        <?php endif; ?>
+                        <span class="badge badge-<?= match($payStatus) { 'paid' => 'emerald', 'partial' => 'amber', default => 'rose' } ?> !text-[9px]">
+                            <?= $payStatus === 'paid' ? 'Paid' : ($payStatus === 'partial' ? 'Partial' : 'Udhaar') ?>
+                        </span>
+                    </div>
                 <?php elseif ($status === 'reserved'): ?>
                     <p class="text-[11px] text-indigo-400 font-medium">Reserved</p>
                 <?php else: ?>
@@ -196,14 +252,24 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
                                 $elapsedNow -= (int) ($sess['paused_total_sec'] ?? 0);
                                 $elapsedNow = max(0, $elapsedNow);
                             }
+                            $isFixedSess = ($sess['charge_type'] ?? 'timer') === 'fixed';
                             $estAmount = 0;
-                            if ($elapsedNow > 0) {
+                            if ($isFixedSess) {
+                                $estAmount = (float) ($sess['fixed_amount'] ?? 0);
+                            } elseif ($elapsedNow > 0) {
                                 $rate = (float) ($sess['rate'] ?? $sess['table_rate'] ?? 300);
                                 $estAmount = round(($elapsedNow / 3600) * $rate);
                                 $minCharge = (float) ($sess['table_min_charge'] ?? 100);
                                 if ($estAmount < $minCharge) $estAmount = $minCharge;
                                 $estAmount = ceil($estAmount / 10) * 10;
                             }
+                            $sessPlayers = array_values(array_filter([
+                                trim((string) ($sess['player_winner'] ?? '')),
+                                trim((string) ($sess['player_loser'] ?? '')),
+                            ]));
+                            $sessClient = trim((string) ($sess['client_name'] ?? ''));
+                            if ($sessClient === '') { $sessClient = trim((string) ($sess['customer_name'] ?? '')); }
+                            $sessPayStatus = (string) ($sess['payment_status'] ?? 'unpaid');
                         ?>
                         <tr data-session-id="<?= (int) $sess['id'] ?>">
                             <td>
@@ -213,8 +279,8 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
                                 <span class="text-slate-500 ml-1"> <?= e($sess['table_name']) ?></span>
                             </td>
                             <td>
-                                <?php if (!empty($sess['customer_name'])): ?>
-                                    <span class="text-white"><?= e($sess['customer_name']) ?></span>
+                                <?php if ($sessClient !== ''): ?>
+                                    <span class="text-white"><?= e($sessClient) ?></span>
                                     <?php if (!empty($sess['customer_phone'])): ?>
                                         <br><span class="text-[11px] text-slate-500"><?= e($sess['customer_phone']) ?></span>
                                     <?php endif; ?>
@@ -222,10 +288,20 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
                                     <span class="text-slate-500 italic">Walk-in</span>
                                 <?php endif; ?>
                             </td>
-                            <td class="text-slate-400"><?= (int) ($sess['players_count'] ?? 1) ?></td>
+                            <td class="text-slate-400">
+                                <?php if ($sessPlayers !== []): ?>
+                                    <span class="text-slate-200"><?= e(implode(' vs ', $sessPlayers)) ?></span><br>
+                                <?php endif; ?>
+                                <span class="text-[11px] text-slate-500"><?= (int) ($sess['players_count'] ?? 1) ?> player(s)</span>
+                            </td>
                             <td>
-                                <span class="badge badge-sky"><?= e(ucfirst($sess['rate_type'] ?? 'hourly')) ?></span>
-                                <span class="text-[11px] text-slate-500 ml-1">Rs <?= number_format((float) ($sess['rate'] ?? 0)) ?>/hr</span>
+                                <?php if ($isFixedSess): ?>
+                                    <span class="badge badge-amber">Fixed</span>
+                                    <span class="text-[11px] text-slate-500 ml-1">Rs <?= number_format((float) ($sess['fixed_amount'] ?? 0)) ?></span>
+                                <?php else: ?>
+                                    <span class="badge badge-sky"><?= e(ucfirst($sess['rate_type'] ?? 'hourly')) ?></span>
+                                    <span class="text-[11px] text-slate-500 ml-1">Rs <?= number_format((float) ($sess['rate'] ?? 0)) ?>/hr</span>
+                                <?php endif; ?>
                             </td>
                             <td>
                                 <span class="font-mono text-sm font-semibold session-timer <?= $sess['status'] === 'active' ? 'text-emerald-400' : 'text-amber-400' ?>"
@@ -236,13 +312,20 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
                                 </span>
                             </td>
                             <td class="text-right">
-                                <span class="font-semibold text-white est-amount" data-rate="<?= (float) ($sess['rate'] ?? $sess['table_rate'] ?? 300) ?>" data-min-charge="<?= (float) ($sess['table_min_charge'] ?? 100) ?>">
-                                    Rs <?= number_format($estAmount) ?>
-                                </span>
+                                <?php if ($isFixedSess): ?>
+                                    <span class="font-semibold text-white">Rs <?= number_format($estAmount) ?></span>
+                                <?php else: ?>
+                                    <span class="font-semibold text-white est-amount" data-rate="<?= (float) ($sess['rate'] ?? $sess['table_rate'] ?? 300) ?>" data-min-charge="<?= (float) ($sess['table_min_charge'] ?? 100) ?>">
+                                        Rs <?= number_format($estAmount) ?>
+                                    </span>
+                                <?php endif; ?>
                             </td>
                             <td>
                                 <span class="badge badge-<?= $sess['status'] === 'active' ? 'emerald' : 'amber' ?>">
                                     <?= ucfirst($sess['status']) ?>
+                                </span>
+                                <span class="badge badge-<?= match($sessPayStatus) { 'paid' => 'emerald', 'partial' => 'amber', default => 'rose' } ?> ml-1">
+                                    <?= $sessPayStatus === 'paid' ? 'Paid' : ($sessPayStatus === 'partial' ? 'Partial' : 'Udhaar') ?>
                                 </span>
                             </td>
                             <td class="text-right">
@@ -338,6 +421,54 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
                     </p>
                 </div>
 
+                <!-- Winner / Loser -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-2">Winner</label>
+                        <input type="text" x-model="playerWinner" placeholder="Winning player"
+                               class="w-full bg-ink-800 border border-white/10 rounded-xl text-sm text-white placeholder-slate-500 px-4 py-2.5 focus:ring-2 focus:ring-emerald-500/50 focus:outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-2">Loser</label>
+                        <input type="text" x-model="playerLoser" placeholder="Losing player"
+                               class="w-full bg-ink-800 border border-white/10 rounded-xl text-sm text-white placeholder-slate-500 px-4 py-2.5 focus:ring-2 focus:ring-emerald-500/50 focus:outline-none transition">
+                    </div>
+                </div>
+
+                <!-- Client identity -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-2">Client Name</label>
+                        <input type="text" x-model="clientName" placeholder="Who is paying?"
+                               class="w-full bg-ink-800 border border-white/10 rounded-xl text-sm text-white placeholder-slate-500 px-4 py-2.5 focus:ring-2 focus:ring-emerald-500/50 focus:outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-2">Phone <span class="text-slate-600">(for udhaar)</span></label>
+                        <input type="tel" x-model="clientPhone" placeholder="03xx-xxxxxxx"
+                               class="w-full bg-ink-800 border border-white/10 rounded-xl text-sm text-white placeholder-slate-500 px-4 py-2.5 focus:ring-2 focus:ring-emerald-500/50 focus:outline-none transition">
+                    </div>
+                </div>
+
+                <!-- Charge type -->
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-2">Charge Mode</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" @click="chargeType = 'timer'"
+                                :class="chargeType === 'timer' ? 'border-emerald-500/60 bg-emerald-500/10 text-emerald-300' : 'border-white/10 text-slate-400 hover:text-white'"
+                                class="rounded-xl border px-4 py-2.5 text-sm font-medium transition">Live Timer</button>
+                        <button type="button" @click="chargeType = 'fixed'"
+                                :class="chargeType === 'fixed' ? 'border-emerald-500/60 bg-emerald-500/10 text-emerald-300' : 'border-white/10 text-slate-400 hover:text-white'"
+                                class="rounded-xl border px-4 py-2.5 text-sm font-medium transition">Fixed Amount</button>
+                    </div>
+                </div>
+
+                <!-- Fixed amount -->
+                <div x-show="chargeType === 'fixed'" x-cloak>
+                    <label class="block text-xs font-medium text-slate-400 mb-2">Fixed Amount (Rs) *</label>
+                    <input type="number" x-model.number="fixedAmount" step="1" min="0" placeholder="0"
+                           class="w-full bg-ink-800 border border-white/10 rounded-xl text-sm text-white placeholder-slate-500 px-4 py-2.5 focus:ring-2 focus:ring-emerald-500/50 focus:outline-none transition">
+                </div>
+
                 <!-- Players Count & Rate Type -->
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -367,6 +498,40 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
                     </div>
                 </div>
 
+                <!-- Expected end -->
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-2">Expected End <span class="text-slate-600">(optional)</span></label>
+                    <input type="datetime-local" x-model="expectedEnd"
+                           class="w-full bg-ink-800 border border-white/10 rounded-xl text-sm text-white px-4 py-2.5 focus:ring-2 focus:ring-emerald-500/50 focus:outline-none transition">
+                </div>
+
+                <!-- Payment -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-2">Payment Method</label>
+                        <select x-model="paymentMethod"
+                                class="w-full bg-ink-800 border border-white/10 rounded-xl text-sm text-white px-4 py-2.5 focus:ring-2 focus:ring-emerald-500/50 focus:outline-none transition appearance-none">
+                            <?php foreach (\App\Models\Payment::METHODS as $key => $label): ?>
+                                <option value="<?= e($key) ?>"><?= e($label) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-2">Payment Timing</label>
+                        <select x-model="payMode"
+                                class="w-full bg-ink-800 border border-white/10 rounded-xl text-sm text-white px-4 py-2.5 focus:ring-2 focus:ring-emerald-500/50 focus:outline-none transition appearance-none">
+                            <option value="later">Pay Later (Udhaar)</option>
+                            <option value="now" :disabled="chargeType !== 'fixed'">Pay Now</option>
+                        </select>
+                    </div>
+                </div>
+                <p x-show="chargeType !== 'fixed'" class="text-[11px] text-amber-400/80 -mt-1">
+                    Timer sessions are settled when the session ends.
+                </p>
+                <p x-show="payMode === 'later' && chargeType === 'fixed'" class="text-[11px] text-rose-400/80 -mt-1">
+                    Udhaar requires a client name and phone, or the balance cannot be traced.
+                </p>
+
                 <!-- Notes -->
                 <div>
                     <label class="block text-xs font-medium text-slate-400 mb-2">Notes <span class="text-slate-600">(optional)</span></label>
@@ -377,7 +542,12 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
                 <!-- Submit -->
                 <div class="flex items-center justify-between pt-2">
                     <p class="text-xs text-slate-500">
-                        Rate: <span class="text-emerald-400 font-semibold" x-text="'Rs ' + Number(modalHourlyRate).toLocaleString() + '/hr'"></span>
+                        <template x-if="chargeType === 'fixed'">
+                            <span>Fixed: <span class="text-emerald-400 font-semibold" x-text="'Rs ' + Number(fixedAmount || 0).toLocaleString()"></span></span>
+                        </template>
+                        <template x-if="chargeType !== 'fixed'">
+                            <span>Rate: <span class="text-emerald-400 font-semibold" x-text="'Rs ' + Number(modalHourlyRate).toLocaleString() + '/hr'"></span></span>
+                        </template>
                     </p>
                     <div class="flex items-center gap-3">
                         <button type="button" @click="showStartModal = false" class="btn-secondary">Cancel</button>
@@ -406,21 +576,47 @@ $maintenanceCount = count(array_filter($tables, fn($t) => $t['status'] === 'main
          @click.self="showEndModal = false"
          @keydown.escape.window="showEndModal = false">
 
-        <div class="modal-card max-w-sm"
+        <div class="modal-card max-w-md"
              x-transition:enter="transition ease-out duration-200"
              x-transition:enter-start="opacity-0 scale-95"
              x-transition:enter-end="opacity-100 scale-100"
              @click.stop>
 
-            <div class="p-6 text-center">
-                <div class="w-12 h-12 rounded-full bg-rose-500/15 flex items-center justify-center mx-auto mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.832c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+            <div class="p-6">
+                <div class="text-center mb-5">
+                    <div class="w-12 h-12 rounded-full bg-rose-500/15 flex items-center justify-center mx-auto mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.832c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+                    </div>
+                    <h3 class="text-base font-semibold text-white mb-1">End Session?</h3>
+                    <p class="text-sm text-slate-400">Table <span class="text-white font-medium" x-text="'#' + endModalTableNumber"></span></p>
+                    <p class="text-sm text-slate-400 mt-1">
+                        Amount due:
+                        <span class="text-white font-semibold" x-text="'Rs ' + Number(endModalAmount).toLocaleString()"></span>
+                    </p>
                 </div>
-                <h3 class="text-base font-semibold text-white mb-1">End Session?</h3>
-                <p class="text-sm text-slate-400 mb-1">Table <span class="text-white font-medium" x-text="'#' + endModalTableNumber"></span></p>
-                <p class="text-xs text-slate-500 mb-5">The session will be marked completed and the table freed.</p>
 
-                <div class="flex items-center gap-3 justify-center">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-2">Amount Collected Now (Rs)</label>
+                        <input type="number" x-model.number="endPayAmount" step="1" min="0"
+                               class="w-full bg-ink-800 border border-white/10 rounded-xl text-sm text-white px-4 py-2.5 focus:ring-2 focus:ring-emerald-500/50 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-2">Payment Method</label>
+                        <select x-model="endMethod"
+                                class="w-full bg-ink-800 border border-white/10 rounded-xl text-sm text-white px-4 py-2.5 focus:ring-2 focus:ring-emerald-500/50 focus:outline-none appearance-none">
+                            <?php foreach (\App\Models\Payment::METHODS as $key => $label): ?>
+                                <option value="<?= e($key) ?>"><?= e($label) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <p class="text-[11px] text-slate-500">
+                        Set collected amount to 0 to send the whole amount to Udhaar
+                        (requires a linked customer).
+                    </p>
+                </div>
+
+                <div class="flex items-center gap-3 justify-center mt-5">
                     <button @click="showEndModal = false" class="btn-secondary">Cancel</button>
                     <button @click="confirmEndSession()"
                             class="btn-danger"
@@ -450,6 +646,15 @@ function tableCommandCenter(prefill) {
         customerSearchFocused: false,
         playersCount: 1,
         rateType: 'hourly',
+        playerWinner: '',
+        playerLoser: '',
+        clientName: '',
+        clientPhone: '',
+        chargeType: 'timer',
+        fixedAmount: 0,
+        expectedEnd: '',
+        paymentMethod: 'cash',
+        payMode: 'later',
         notes: '',
         startSubmitting: false,
 
@@ -458,6 +663,9 @@ function tableCommandCenter(prefill) {
         endSessionId: null,
         endTableId: null,
         endModalTableNumber: '',
+        endModalAmount: 0,
+        endPayAmount: 0,
+        endMethod: 'cash',
         endSubmitting: false,
 
         init() {
@@ -500,6 +708,15 @@ function tableCommandCenter(prefill) {
             this.customerResults = [];
             this.playersCount = 1;
             this.rateType = 'hourly';
+            this.playerWinner = '';
+            this.playerLoser = '';
+            this.clientName = '';
+            this.clientPhone = '';
+            this.chargeType = 'timer';
+            this.fixedAmount = 0;
+            this.expectedEnd = '';
+            this.paymentMethod = 'cash';
+            this.payMode = 'later';
             this.notes = '';
             this.showStartModal = true;
         },
@@ -511,12 +728,31 @@ function tableCommandCenter(prefill) {
                 this.startSubmitting = false;
                 return;
             }
+            if (this.chargeType === 'fixed' && !(Number(this.fixedAmount) > 0)) {
+                alert('Fixed amount must be greater than zero.');
+                return;
+            }
+            if (this.payMode === 'later' && this.chargeType === 'fixed'
+                && Number(this.fixedAmount) > 0 && !this.clientPhone.trim()) {
+                alert('Udhaar ke liye client ka phone number zaroori hai.');
+                return;
+            }
             this.startSubmitting = true;
             try {
                 const result = await apiPost('/api/tables/' + tableId + '/start', {
                     customer_id: this.selectedCustomer ? this.selectedCustomer.id : null,
                     players_count: parseInt(this.playersCount),
                     rate_type: this.rateType,
+                    player_winner: this.playerWinner,
+                    player_loser: this.playerLoser,
+                    client_name: this.clientName,
+                    customer_name: this.clientName,
+                    customer_phone: this.clientPhone,
+                    charge_type: this.chargeType,
+                    fixed_amount: this.chargeType === 'fixed' ? Number(this.fixedAmount) : 0,
+                    expected_end_time: this.expectedEnd,
+                    payment_method: this.paymentMethod,
+                    pay_mode: this.payMode,
                     notes: this.notes
                 });
                 if (result.success) {
@@ -535,6 +771,27 @@ function tableCommandCenter(prefill) {
             this.endSessionId = sessionId;
             this.endTableId = tableId;
             this.endModalTableNumber = tile ? tile.querySelector('.text-sm.font-bold')?.textContent?.replace('#','') || '' : '';
+
+            let amount = 0;
+            if (tile) {
+                const fixedEl = tile.querySelector('.tile-fixed');
+                const amtEl = tile.querySelector('.tile-amount');
+                const timerEl = tile.querySelector('.timer-display');
+                if (fixedEl) {
+                    amount = parseFloat(fixedEl.dataset.amount || '0') || 0;
+                } else if (amtEl && timerEl) {
+                    const rate = parseFloat(amtEl.dataset.rate || '0') || 0;
+                    const min = parseFloat(amtEl.dataset.minCharge || '0') || 0;
+                    const start = parseInt(timerEl.dataset.start || '0', 10);
+                    const paused = parseInt(timerEl.dataset.paused || '0', 10);
+                    const elapsed = Math.max(0, Math.floor(Date.now() / 1000) - start - paused);
+                    amount = Math.round((elapsed / 3600) * rate);
+                    if (elapsed > 0 && amount < min) amount = min;
+                    amount = Math.ceil(amount / 10) * 10;
+                }
+            }
+            this.endModalAmount = amount;
+            this.endPayAmount = amount;
             this.showEndModal = true;
         },
 
@@ -547,7 +804,10 @@ function tableCommandCenter(prefill) {
             }
             this.endSubmitting = true;
             try {
-                const result = await apiPost('/api/sessions/' + sessionId + '/end');
+                const result = await apiPost('/api/sessions/' + sessionId + '/end', {
+                    pay_amount: Number(this.endPayAmount) || 0,
+                    method: this.endMethod
+                });
                 if (result.success) {
                     location.reload();
                 } else {
@@ -635,7 +895,71 @@ function tickTimers() {
             }
         }
     });
+
+    // Update per-table card amount (timer sessions only)
+    document.querySelectorAll('.timer-display').forEach(el => {
+        const tile = el.closest('[data-table-id]');
+        if (!tile) return;
+        const amtEl = tile.querySelector('.tile-amount');
+        if (!amtEl) return;
+        const status = el.dataset.status;
+        if (status !== 'active') return;
+        const rate = parseFloat(amtEl.dataset.rate || '0') || 0;
+        const minCharge = parseFloat(amtEl.dataset.minCharge || '0') || 0;
+        const now = Math.floor(Date.now() / 1000);
+        const elapsed = Math.max(0, now - parseInt(el.dataset.start || '0', 10) - parseInt(el.dataset.paused || '0', 10));
+        let amount = Math.round((elapsed / 3600) * rate);
+        if (amount < minCharge && elapsed > 0) amount = minCharge;
+        amount = Math.ceil(amount / 10) * 10;
+        amtEl.textContent = formatCurrency(amount);
+    });
 }
 
 setInterval(tickTimers, 1000);
+
+// ── Table camera thumbnails ────────────────────────────────────
+function openCam(btn) {
+    const url = btn?.dataset?.player;
+    if (!url) { alert('No camera stream is linked to this table.'); return; }
+    window.open(url, '_blank', 'noopener');
+}
+
+(function initTableCameras() {
+    const videos = document.querySelectorAll('.table-cam');
+    if (!videos.length) return;
+
+    function attach() {
+        videos.forEach(video => {
+            const src = video.dataset.hlsSrc;
+            if (!src) return;
+            const hide = () => {
+                video.style.visibility = 'hidden';
+                const ph = video.parentElement?.querySelector('.cam-offline');
+                if (ph) ph.style.display = 'flex';
+            };
+            video.addEventListener('error', hide);
+            video.addEventListener('stalled', hide);
+            if (window.Hls && Hls.isSupported()) {
+                const hls = new Hls({ lowLatencyMode: true });
+                hls.loadSource(src);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.ERROR, (_, data) => { if (data.fatal) hide(); });
+                video.muted = true;
+                video.play().catch(hide);
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = src;
+                video.muted = true;
+                video.play().catch(hide);
+            }
+        });
+    }
+
+    if (window.Hls) { attach(); }
+    else {
+        const s = document.createElement('script');
+        s.src = '/assets/vendor/hls.min.js';
+        s.onload = attach;
+        document.head.appendChild(s);
+    }
+})();
 </script>

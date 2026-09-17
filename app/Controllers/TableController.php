@@ -10,12 +10,18 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Models\ClubSession;
 use App\Models\Table as TableModel;
+use App\Services\SettingsService;
 
 class TableController extends Controller
 {
     public function index(): void
     {
         $tables = TableModel::activeTables();
+
+        $canViewCctv = user_can('cctv.view') || user_can('cctv.manage');
+        $streamMode  = (string) SettingsService::get('cctv_stream_mode', 'img');
+        $serverUrl   = rtrim((string) SettingsService::get('cctv_server_url', 'http://127.0.0.1:1984'), '/');
+        $cameraMap   = $canViewCctv ? $this->cameraByTable() : [];
 
         // Enrich with current sessions
         foreach ($tables as &$t) {
@@ -28,6 +34,14 @@ class TableController extends Controller
             } else {
                 $t['elapsed_seconds'] = 0;
             }
+
+            $cam = $cameraMap[(int) $t['id']] ?? null;
+            $t['camera'] = $cam ? [
+                'name'        => $cam['name'],
+                'stream_name' => $cam['stream_name'],
+                'hls_url'     => CameraController::hlsUrl($serverUrl, $cam['stream_name']),
+                'player_url'  => CameraController::playerUrl($serverUrl, $cam['stream_name']),
+            ] : null;
         }
         unset($t);
 
@@ -52,7 +66,25 @@ class TableController extends Controller
             'activeSessions'=> $activeSessions,
             'startSession'  => Request::get('start_session') === '1',
             'startPrefill'  => $startPrefill,
+            'canViewCctv'   => $canViewCctv,
+            'streamMode'    => $streamMode,
+            'serverUrl'     => $serverUrl,
         ]);
+    }
+
+    /**
+     * First enabled camera bound to each table, keyed by table id.
+     */
+    private function cameraByTable(): array
+    {
+        $map = [];
+        foreach (TableModel::camerasByTable() as $row) {
+            $tableId = (int) $row['table_id'];
+            if (!isset($map[$tableId])) {
+                $map[$tableId] = $row;
+            }
+        }
+        return $map;
     }
 
     public function create(): void
